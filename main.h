@@ -19,12 +19,9 @@
 #define USE_LIST 2
 #define PROGRAM_TEXT 3
 
-void fileTokenizer(char *delimiter, FILE *file);
-int getNextToken(FILE *file);
-char packModule(int *stringPointer, char round);
-char buildDefList(int *defListPointer, int defQuantity);
+char getNextToken(char *delimeter, char *buffer, FILE *file);
+char loadModule();
+char buildModuleName(char *moduleNamePointer);
+char buildDefList(char *defListPointer);
 void buildUseList(int *useListPointer, int useQuantity);
 void buildProgramText(int *progTextPointer, int instructionQuantity);
-
-int *moduleName;
-int *definitionList;

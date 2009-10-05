@@ -2,22 +2,25 @@
 
 #include "main.h"
 
-static int *tokenbuf[MAXMEM];
-static int *tbpointer = tokenbuf;
 FILE *inputFile; // The file
+char *blankSpace = "[[:space:]]";
+
+
 	
 int main (int argc, const char *argv[]) {
-	char *fileName; // A pointer to the name of the file
-
+	
+	static char *moduleArray[4];
+	static char *moduleName[32];
+	static char *definitionList[32];
+	
+	moduleArray[0] = moduleName;
+	moduleArray[1] = definitionList;
 	// If the user provides no argument, print the program's usage
 	if (argc < 2) {
 		printf("\tUsage: Lab1 <filename> \n\n");
 		exit(0);
 	}
 	
-	
-//	printf(argv[1]);
-//	printf("\n");
 	
 	//Open a stream to the file provided as the first argument.
 	inputFile = fopen(argv[1], "r");
@@ -30,105 +33,52 @@ int main (int argc, const char *argv[]) {
 		exit(1);
 	}
 	
-	/*  Use white spaces as delimiters to tokenize the contents of the file "inputFile".  The function fileTokenizer takes a regular expression as
-		its input for delimiter. */
-	fileTokenizer("[[:space:]]", inputFile);
 	
-    return 0;
+	buildModuleName(moduleName);
+	printf("%s\n", moduleName);
+	
+	buildDefList(definitionList);
+	printf("%s\n", definitionList);
+
+	
+    return(0);
 }
 
-static char round = MODULE_NAME;
-// A regular expression type (regex_t) to match white spaces.
-regex_t matchWhiteSpace;
-	
-void fileTokenizer(char *delimiter, FILE *file){
-	int tokenLength = 0;
-	char newStatus = NULL;
-	char oldStatus;
-	char c;
-	
-	
-	// Compile the regular expression.
-	if(regcomp(&matchWhiteSpace, delimiter, REG_EXTENDED) != 0){
-		perror("Check your regexp!");
-		exit(1);
-	}
-	
-		/* regexec() returns 0 if the string passed to it contains the sequence
-		 specified by the regular expression.  In this case the regular expression
-		 is any kind of white space, and the we are passing one character at a time
-		 to the regexec function.  Therefore, if the character passed is a white
-		 space, the if statement fails and the white space is ignored. */	
-	while ((c = getc(file)) != EOF){ 
-		//While the next character is not the end of the file.
-		
-		oldStatus = newStatus; 
-		//Save the old status; is the previous character a white space?
-		
-		newStatus = regexec(&matchWhiteSpace, &c, 0, NULL, REG_NOTBOL);
-		//Get the new status; is the current character a white space?
-		
-		/* If the current character and the previous character are both white spaces,
-		do nothing.  Continue to read the next character.*/
-		if((oldStatus == 0) && (newStatus == 0))
-			continue;
-		/*  Otherwise, if the current character is a white space but the previous one was not, jump to the next sub-array. */
-		else if(!newStatus){
-			round = packModule(tbpointer, round);
-			//printf(tbpointer);
-			//printf("\n");
-			tbpointer += tokenLength;
-			tokenLength = 0; // Reset the token length
-		}
-		/* If the new character and the old characters are both none white space, append the new character to the current subarray, which is a string.*/
-		else {
-			strcat(tbpointer, &c);
-			tokenLength++;
-		}
-	}
-	printf(moduleName);
-	printf("\n");
-	printf(definitionList);
-	printf("\n");
-		
-	// Release the memory used by the regular expression compile.
-	regfree(&matchWhiteSpace);
-}
-
-int *moduleName;
-
-char packModule(int *stringPointer, char round){	
-	switch (round) {
-		case MODULE_NAME:
-			moduleName = stringPointer;
-			return DEF_LIST;
-		case DEF_LIST:
-			return buildDefList(stringPointer, *stringPointer);
-		case USE_LIST:
-			buildUseList(stringPointer, *stringPointer);
-			return PROGRAM_TEXT;
-		case PROGRAM_TEXT:
-			buildProgramText(stringPointer, *stringPointer);
-
-		default:
-			return(-1);
-	}
-}
+//char loadModule(const char *moduleArray){	
+//		char nameLength;
+//		nameLength = buildModuleName(moduleArray[0]);
+//		printf("%s\n", moduleArray[0]);
+//		
+//		buildDefList(moduleArray[1]);
+//		printf("name length: %d\n", nameLength);
+////		printf("defQuantity: %d\n", moduleArray[1]);
+//		printf("%s\n", moduleArray[1]);	
+////		buildUseList(stringPointer, *stringPointer);
+//
+////		buildProgramText(stringPointer, *stringPointer);
+//		return 0;
+//
+//}
 
 //Where in memory does the definitionList start?
-int *definitionList;
+
 //Where in the definition list are we?  First value, second value, etc...
 
-char buildDefList(int *defListPointer, int defQuantity){
-	int nextToken;
-	/*  If we are at the first value of the definition list, that value should indicate the number of definitions.  Store this value in defQuantity. In addition, this point is the beginning of the definitionList.  Save that as well. Increment the pointer to value 2. */
-	definitionList = defListPointer;
+char buildModuleName(char *moduleNamePointer){
+	return getNextToken(blankSpace, moduleNamePointer, inputFile);
+}
+
+char buildDefList(char *defListPointer){
+	char i;
+	getNextToken(blankSpace, defListPointer, inputFile);
+	char defQuantity = (*defListPointer - '0');
+	printf("defQuantity: %d\n", defQuantity);
 	
-	for (int i = 0; i < defQuantity; i++) {
-		nextToken = getNextToken(inputFile);
-		strcat(definitionList, &nextToken);
+	for (i = 0; i < defQuantity; i++) {
+		printf("i: %d\n", i);
+		getNextToken(blankSpace, defListPointer, inputFile);
 	}
-	return USE_LIST;
+	return i;
 }
 
 void buildUseList(int *useListPointer, int useQuantity){
@@ -139,32 +89,49 @@ void buildProgramText(int *progTextPointer, int instructionQuantity){
 
 }
 
-int getNextToken(FILE *file){
-	int *token;
-	char c;
+char getNextToken(char *delimiter, char *buffer, FILE *file){
+	char tokenLength = 0;
 	char newStatus = NULL;
 	char oldStatus;
+	char c;
+	regex_t regularExpression; // A regular expression type (regex_t)	
+	// Compile the regular expression.
+	if(regcomp(&regularExpression, delimiter, REG_EXTENDED) != 0){
+		perror("Check your regexp!");
+		exit(1);
+	}
 	
+	/* regexec() returns 0 if the string passed to it contains the sequence specified by the regular expression.  In this case the regular expression is any kind of white space, and the we are passing one character at a time to the regexec function.  Therefore, if the character passed is a white space, the if statement fails and the white space is ignored. */	
 	while ((c = getc(file)) != EOF){ 
 		//While the next character is not the end of the file.
 		
-		//Save the old status; is the previous character a white space?		
-		oldStatus = newStatus; 
+		oldStatus = newStatus;
+		//Save the old status; is the previous character a white space?
 		
+		newStatus = regexec(&regularExpression, &c, 0, NULL, REG_NOTEOL);
 		//Get the new status; is the current character a white space?
-		newStatus = regexec(&matchWhiteSpace, &c, 0, NULL, REG_NOTBOL);
 		
-		
-		/*  If the current character is a white space, do nothing.  Continue to read the next character. */
-		if((oldStatus == 0) && (newStatus == 0))
+		/* If the current character and the previous character are both white spaces,
+		 do nothing.  Continue to read the next character.*/
+		if((oldStatus == 0) && (newStatus == 0)){
 			continue;
-		/*  Otherwise, if the current character is a white space but the previous one was not, return the string. */
+		}
+		/*  Otherwise, if the current character is a white space but the previous one was not, finish */
 		else if(!newStatus){
-			printf(token);
-			return *token;
+			strcat(buffer, "\0");
+			printf("Buffer: %s\n", buffer);
+			tokenLength++;
+			return tokenLength;
 		}
 		/* If the new character and the old characters are both none white space, append the new character to the current subarray, which is a string.*/
-		else 
-			strcat(token, &c);
+		else {
+			strcat(buffer, &c);
+			tokenLength++;
+		}
 	}
+	
+	// Release the memory used by the regular expression compile.
+	regfree(&regularExpression);
+	perror("No token was found, the input file may not have the proper format.");
+	exit(2);
 }
