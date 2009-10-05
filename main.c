@@ -44,26 +44,6 @@ int main (int argc, const char *argv[]) {
     return(0);
 }
 
-//char loadModule(const char *moduleArray){	
-//		char nameLength;
-//		nameLength = buildModuleName(moduleArray[0]);
-//		printf("%s\n", moduleArray[0]);
-//		
-//		buildDefList(moduleArray[1]);
-//		printf("name length: %d\n", nameLength);
-////		printf("defQuantity: %d\n", moduleArray[1]);
-//		printf("%s\n", moduleArray[1]);	
-////		buildUseList(stringPointer, *stringPointer);
-//
-////		buildProgramText(stringPointer, *stringPointer);
-//		return 0;
-//
-//}
-
-//Where in memory does the definitionList start?
-
-//Where in the definition list are we?  First value, second value, etc...
-
 char buildModuleName(char *moduleNamePointer){
 	return getNextToken(blankSpace, moduleNamePointer, inputFile);
 }
@@ -74,9 +54,9 @@ char buildDefList(char *defListPointer){
 	char defQuantity = (*defListPointer - '0');
 	printf("defQuantity: %d\n", defQuantity);
 	
-	for (i = 0; i < defQuantity; i++) {
+	for (i = 1; i <= defQuantity; i++) {
 		printf("i: %d\n", i);
-		getNextToken(blankSpace, defListPointer, inputFile);
+		getNextToken(blankSpace, (defListPointer + i), inputFile);
 	}
 	return i;
 }
@@ -118,6 +98,7 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 		}
 		/*  Otherwise, if the current character is a white space but the previous one was not, finish */
 		else if(!newStatus){
+			regfree(&regularExpression);
 			strcat(buffer, "\0");
 			printf("Buffer: %s\n", buffer);
 			tokenLength++;
@@ -125,13 +106,12 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 		}
 		/* If the new character and the old characters are both none white space, append the new character to the current subarray, which is a string.*/
 		else {
-			strcat(buffer, &c);
+			buffer[tokenLength] = c;
 			tokenLength++;
 		}
 	}
 	
 	// Release the memory used by the regular expression compile.
-	regfree(&regularExpression);
-	perror("No token was found, the input file may not have the proper format.");
+	perror("No token was found, the input file may not have the proper format.\n");
 	exit(2);
 }
