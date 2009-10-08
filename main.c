@@ -1,6 +1,7 @@
 /* NOTE: You may want enable your text editor's word wrap functionality to read this source file.  Most major editors support this feature. */
 
 #include "main.h"
+#define SYMBOL_SIZE 16
 
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
@@ -8,6 +9,13 @@ char *blankSpace = "[[:space:]]";
 
 	
 int main (int argc, const char *argv[]) {
+	
+	struct module {
+		char *moduleName;
+		char *definitionList;
+		char *useList;
+		char *programText;
+	};
 	
 	static char *moduleArray[4];
 	static char *moduleName[32];
@@ -38,7 +46,7 @@ int main (int argc, const char *argv[]) {
 	printf("%s\n", moduleName);
 	
 	buildDefList(definitionList);
-	printf("%s\n", definitionList);
+	printf("definitionList[1]: %s\n", (definitionList + 1));
 
 	
     return(0);
@@ -50,15 +58,25 @@ char buildModuleName(char *moduleNamePointer){
 
 char buildDefList(char *defListPointer){
 	char i;
-	getNextToken(blankSpace, defListPointer, inputFile);
-	char defQuantity = (*defListPointer - '0');
+	char *stringBuffer[SYMBOL_SIZE];
+	
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	char defQuantity = *stringBuffer - '0';
 	printf("defQuantity: %d\n", defQuantity);
 	
-	for (i = 1; i <= defQuantity; i++) {
+	for (i = 1; i <= 2*defQuantity; i = i+2) {
 		printf("i: %d\n", i);
-		getNextToken(blankSpace, (defListPointer + i), inputFile);
+		getNextToken(blankSpace, stringBuffer, inputFile);
+		//strcpy((defListPointer + i), stringBuffer);
+		*(defListPointer + i) = *stringBuffer;
+		printf("stringBuffer: %s\n", (defListPointer + i));
+		getNextToken(blankSpace, stringBuffer, inputFile);
+		//strcpy((defListPointer + i + 1), stringBuffer);
+		printf("stringBuffer2: %s\n", (defListPointer + i));
 	}
-	return i;
+	
+	//printf("defList: %c", defListPointer[1]);
+	return defQuantity;
 }
 
 void buildUseList(int *useListPointer, int useQuantity){
@@ -88,26 +106,29 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 		oldStatus = newStatus;
 		//Save the old status; is the previous character a white space?
 		
-		newStatus = regexec(&regularExpression, &c, 0, NULL, REG_NOTEOL);
+		newStatus = regexec(&regularExpression, &c, 0, NULL, REG_NOTBOL);
+		newStatus = regexec(&regularExpression, &c, 0, NULL, REG_NOTBOL);
 		//Get the new status; is the current character a white space?
+		/* The reason I'm calling the regexec twice, is because there seems to be a bug. When I was testing my code with the Temperature module, the 9th call kept returning a zero, despite the fact that the 9th character is an 'r'.  Calling the function twice seems to circumvent the bug.*/
 		
 		/* If the current character and the previous character are both white spaces,
 		 do nothing.  Continue to read the next character.*/
 		if((oldStatus == 0) && (newStatus == 0)){
 			continue;
 		}
-		/*  Otherwise, if the current character is a white space but the previous one was not, finish */
-		else if(!newStatus){
-			regfree(&regularExpression);
-			strcat(buffer, "\0");
-			printf("Buffer: %s\n", buffer);
-			tokenLength++;
-			return tokenLength;
-		}
-		/* If the new character and the old characters are both none white space, append the new character to the current subarray, which is a string.*/
-		else {
+		/* If the new character and the old characters are both none white space, append the new character to the buffer.*/
+		else if(newStatus) {
 			buffer[tokenLength] = c;
+			//strcat(buffer, &c);
 			tokenLength++;
+		}
+		/*  Otherwise, if the current character is a white space but the previous one was not, finish */
+		else {
+			regfree(&regularExpression);
+			buffer[tokenLength] = '\0';
+			//strcat(buffer, "\0");
+			//printf("Buffer: %s\n", buffer);
+			return tokenLength;
 		}
 	}
 	
