@@ -6,23 +6,22 @@
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
 
+struct definition{
+	char *symbol;
+	int relativeAddress;
+};
 
+struct module {
+	char *moduleName[16];
+	struct definition definitionList[32];
+	char *useList;
+	char *programText;
+};
 	
 int main (int argc, const char *argv[]) {
 	
-	struct module {
-		char *moduleName;
-		char *definitionList;
-		char *useList;
-		char *programText;
-	};
+	struct module loaded;
 	
-	static char *moduleArray[4];
-	static char *moduleName[32];
-	static char *definitionList[32];
-	
-	moduleArray[0] = moduleName;
-	moduleArray[1] = definitionList;
 	// If the user provides no argument, print the program's usage
 	if (argc < 2) {
 		printf("\tUsage: Lab1 <filename> \n\n");
@@ -42,11 +41,11 @@ int main (int argc, const char *argv[]) {
 	}
 	
 	
-	buildModuleName(moduleName);
-	printf("%s\n", moduleName);
+	buildModuleName(loaded.moduleName);
+	printf("%s\n", loaded.moduleName);
 	
-	buildDefList(definitionList);
-	printf("definitionList[1]: %s\n", (definitionList + 1));
+	buildDefList(loaded.definitionList);
+	printf("definitionList[1]: %s\n", loaded.definitionList[1].symbol);
 
 	
     return(0);
@@ -56,27 +55,38 @@ char buildModuleName(char *moduleNamePointer){
 	return getNextToken(blankSpace, moduleNamePointer, inputFile);
 }
 
-char buildDefList(char *defListPointer){
+struct definition *buildDefList(struct definition *defList){
 	char i;
-	char *stringBuffer[SYMBOL_SIZE];
+	char symbolListSize;
+	struct definition *defListP = defList;
 	
-	getNextToken(blankSpace, stringBuffer, inputFile);
-	char defQuantity = *stringBuffer - '0';
+	getNextToken(blankSpace, &symbolListSize, inputFile);
+	char defQuantity = symbolListSize - '0';
 	printf("defQuantity: %d\n", defQuantity);
 	
-	for (i = 1; i <= 2*defQuantity; i = i+2) {
+	for (i = 1; i <= defQuantity; i++) {
 		printf("i: %d\n", i);
-		getNextToken(blankSpace, stringBuffer, inputFile);
-		//strcpy((defListPointer + i), stringBuffer);
-		*(defListPointer + i) = *stringBuffer;
-		printf("stringBuffer: %s\n", (defListPointer + i));
-		getNextToken(blankSpace, stringBuffer, inputFile);
-		//strcpy((defListPointer + i + 1), stringBuffer);
-		printf("stringBuffer2: %s\n", (defListPointer + i));
+		*defList = getDefinition();
+		defList = defList + i;
 	}
 	
 	//printf("defList: %c", defListPointer[1]);
-	return defQuantity;
+	return defListP;
+}
+
+struct definition getDefinition(){
+	struct definition temp;
+	char *stringBuffer[SYMBOL_SIZE];
+	
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	temp.symbol = *stringBuffer;
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	temp.relativeAddress = *stringBuffer;
+	
+//	printf("symbol: %s", temp.symbol);
+//	printf("rAddres: %s", temp.relativeAddress);
+	
+	return temp;
 }
 
 void buildUseList(int *useListPointer, int useQuantity){
@@ -128,7 +138,7 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 			buffer[tokenLength] = '\0';
 			//strcat(buffer, "\0");
 			//printf("Buffer: %s\n", buffer);
-			return tokenLength;
+			return *buffer;
 		}
 	}
 	

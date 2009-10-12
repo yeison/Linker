@@ -22,6 +22,7 @@
 char getNextToken(char *delimeter, char *buffer, FILE *file);
 char loadModule();
 char buildModuleName(char *moduleNamePointer);
-char buildDefList(char *defListPointer);
+struct definition *buildDefList(struct definition *defList);
+struct definition getDefinition();
 void buildUseList(int *useListPointer, int useQuantity);
 void buildProgramText(int *progTextPointer, int instructionQuantity);
