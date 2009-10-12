@@ -9,7 +9,7 @@ FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
 
 struct definitionNode{
-	char *symbol;
+	char symbol[SYMBOL_SIZE];
 	char relativeAddress;
 	struct definitionNode *next;
 };
@@ -46,11 +46,11 @@ int main (int argc, const char *argv[]) {
 	buildModuleName(loaded.moduleName);
 	printf("%s\n", loaded.moduleName);
 	
+	loaded.definitionList = dalloc();
 	buildDefList(loaded.definitionList);
-	//printf("definitionList[1]: %s\n", loaded.definitionList);
-
+	printList(loaded.definitionList);
 	
-    return(0);
+    exit(0);
 }
 
 char buildModuleName(char *moduleNamePointer){
@@ -59,8 +59,8 @@ char buildModuleName(char *moduleNamePointer){
 
 defNodePtr buildDefList(defNodePtr defNodeP){
 	char symbolListSize;
-	defNodeP = dalloc();
-	(*defNodeP).next = dalloc();	
+	defNodePtr defHead = defNodeP;
+	
 	
 	getNextToken(blankSpace, &symbolListSize, inputFile);
 	char defQuantity = symbolListSize - '0';
@@ -68,22 +68,26 @@ defNodePtr buildDefList(defNodePtr defNodeP){
 	
 	for (char i = 1; i <= defQuantity; i++) {
 		printf("i: %d\n", i);
-		*defNodeP = getDefinition();
+		*defNodeP = getDefinition(); 
+		//Alocate space for the next definition and referrence it with next
+		(*defNodeP).next = dalloc();
+		//Move the pointer to the next node.
 		defNodeP = (*defNodeP).next;
 	}
+	(*defNodeP).next = '\0';
 	
 	//printf("defList: %c", defListPointer[1]);
-	return defNodeP;
+	return defHead;
 }
 
-struct definitionNode getDefinition(){
-	struct definitionNode temp;
+defNode getDefinition(){
+	defNode temp;
 	char *stringBuffer[SYMBOL_SIZE];
 	
 	getNextToken(blankSpace, stringBuffer, inputFile);
-	temp.symbol = *stringBuffer;
+	strcpy(temp.symbol, stringBuffer);
 	getNextToken(blankSpace, stringBuffer, inputFile);
-	temp.relativeAddress = *stringBuffer;
+	temp.relativeAddress = *stringBuffer - '0';
 	
 //	printf("symbol: %s", temp.symbol);
 //	printf("rAddres: %s", temp.relativeAddress);
@@ -151,4 +155,14 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 
 defNodePtr *dalloc(void){
 	return (defNodePtr)malloc(sizeof(defNode));
+}
+
+void printList(defNodePtr p){
+	int i = 0;
+	while(p != '\0'){
+		//printf("Node %d Symbol: %s\n", i, (*p).symbol);
+		printf("Node %d rAddress: %c\n", i, (*p).relativeAddress);
+		p++;
+		i++;
+	}
 }
