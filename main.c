@@ -28,7 +28,6 @@ int main (int argc, const char *argv[]) {
 		exit(0);
 	}
 	
-	
 	//Open a stream to the file provided as the first argument.
 	inputFile = fopen(argv[1], "r");
 
