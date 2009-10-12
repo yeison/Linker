@@ -1,25 +1,10 @@
 /* NOTE: You may want enable your text editor's word wrap functionality to read this source file.  Most major editors support this feature. */
 
 #include "main.h"
-#define SYMBOL_SIZE 16
-#define MODULE_NAME_SIZE 32
 #define DEFLIST_SIZE 32
 
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
-
-struct definitionNode{
-	char symbol[SYMBOL_SIZE];
-	char relativeAddress;
-	struct definitionNode *next;
-};
-
-struct module {
-	char moduleName[MODULE_NAME_SIZE];
-	struct definitionNode *definitionList;
-	char *useList;
-	char *programText;
-};
 	
 int main (int argc, const char *argv[]) {
 	
@@ -47,7 +32,7 @@ int main (int argc, const char *argv[]) {
 	printf("%s\n", loaded.moduleName);
 	
 	loaded.definitionList = dalloc();
-	buildDefList(loaded.definitionList);
+	loaded.definitionList = buildDefList(loaded.definitionList);
 	printList(loaded.definitionList);
 	
     exit(0);
@@ -55,44 +40,6 @@ int main (int argc, const char *argv[]) {
 
 char buildModuleName(char *moduleNamePointer){
 	return getNextToken(blankSpace, moduleNamePointer, inputFile);
-}
-
-defNodePtr buildDefList(defNodePtr defNodeP){
-	char symbolListSize;
-	defNodePtr defHead = defNodeP;
-	
-	
-	getNextToken(blankSpace, &symbolListSize, inputFile);
-	char defQuantity = symbolListSize - '0';
-	printf("defQuantity: %d\n", defQuantity);
-	
-	for (char i = 1; i <= defQuantity; i++) {
-		printf("i: %d\n", i);
-		*defNodeP = getDefinition(); 
-		//Alocate space for the next definition and referrence it with next
-		(*defNodeP).next = dalloc();
-		//Move the pointer to the next node.
-		defNodeP = (*defNodeP).next;
-	}
-	(*defNodeP).next = '\0';
-	
-	//printf("defList: %c", defListPointer[1]);
-	return defHead;
-}
-
-defNode getDefinition(){
-	defNode temp;
-	char *stringBuffer[SYMBOL_SIZE];
-	
-	getNextToken(blankSpace, stringBuffer, inputFile);
-	strcpy(temp.symbol, stringBuffer);
-	getNextToken(blankSpace, stringBuffer, inputFile);
-	temp.relativeAddress = *stringBuffer - '0';
-	
-//	printf("symbol: %s", temp.symbol);
-//	printf("rAddres: %s", temp.relativeAddress);
-	
-	return temp;
 }
 
 void buildUseList(int *useListPointer, int useQuantity){
@@ -153,16 +100,56 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 	exit(2);
 }
 
+defNodePtr buildDefList(defNodePtr defNodeP){
+	char symbolListSize;
+	(*defNodeP).next = dalloc();
+	defNodePtr defHead = (*defNodeP).next;
+	
+	
+	getNextToken(blankSpace, &symbolListSize, inputFile);
+	char defQuantity = symbolListSize - '0';
+	printf("defQuantity: %d\n", defQuantity);
+	
+	for (char i = 1; i <= defQuantity; i++) {
+		printf("i: %d\n", i);
+		//Place the next definition into the next node
+		*(*defNodeP).next = getDefinition(); 
+		//Move the pointer to the next node.
+		defNodeP = (*defNodeP).next;
+		//Alocate space for the next definition and referrence it with next
+		(*defNodeP).next = dalloc();
+	}
+	(*defNodeP).next = NULL;
+	
+	//printf("defList: %c", defListPointer[1]);
+	return defHead;
+}
+
+defNode getDefinition(){
+	defNode temp;
+	char *stringBuffer[SYMBOL_SIZE];
+	
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	strcpy(temp.symbol, stringBuffer);
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	temp.relativeAddress = *stringBuffer - '0';
+	
+	//	printf("symbol: %s", temp.symbol);
+	//	printf("rAddres: %s", temp.relativeAddress);
+	
+	return temp;
+}
+
 defNodePtr *dalloc(void){
 	return (defNodePtr)malloc(sizeof(defNode));
 }
 
 void printList(defNodePtr p){
 	int i = 0;
-	while(p != '\0'){
-		//printf("Node %d Symbol: %s\n", i, (*p).symbol);
-		printf("Node %d rAddress: %c\n", i, (*p).relativeAddress);
-		p++;
+	while(p != NULL){
+		printf("Node %d Symbol: %s\n", i, (*p).symbol);
+		printf("Node %d rAddress: %d\n", i, (*p).relativeAddress);
+		p = (*p).next;
 		i++;
 	}
 }
