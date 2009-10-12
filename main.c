@@ -8,14 +8,15 @@
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
 
-struct definition{
+struct definitionNode{
 	char *symbol;
 	char relativeAddress;
+	struct definitionNode *next;
 };
 
 struct module {
 	char moduleName[MODULE_NAME_SIZE];
-	char definitionList[DEFLIST_SIZE];
+	struct definitionNode *definitionList;
 	char *useList;
 	char *programText;
 };
@@ -56,25 +57,27 @@ char buildModuleName(char *moduleNamePointer){
 	return getNextToken(blankSpace, moduleNamePointer, inputFile);
 }
 
-char buildDefList(char *defList){
-	char i;
+defNodePtr buildDefList(defNodePtr defNodeP){
 	char symbolListSize;
+	defNodeP = dalloc();
+	(*defNodeP).next = dalloc();	
 	
 	getNextToken(blankSpace, &symbolListSize, inputFile);
 	char defQuantity = symbolListSize - '0';
 	printf("defQuantity: %d\n", defQuantity);
 	
-	for (i = 1; i <= defQuantity; i++) {
+	for (char i = 1; i <= defQuantity; i++) {
 		printf("i: %d\n", i);
-		defList = getDefinition();
+		*defNodeP = getDefinition();
+		defNodeP = (*defNodeP).next;
 	}
 	
 	//printf("defList: %c", defListPointer[1]);
-	return defList;
+	return defNodeP;
 }
 
-struct definition getDefinition(){
-	struct definition temp;
+struct definitionNode getDefinition(){
+	struct definitionNode temp;
 	char *stringBuffer[SYMBOL_SIZE];
 	
 	getNextToken(blankSpace, stringBuffer, inputFile);
@@ -144,4 +147,8 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 	// Release the memory used by the regular expression compile.
 	perror("No token was found, the input file may not have the proper format.\n");
 	exit(2);
+}
+
+defNodePtr *dalloc(void){
+	return (defNodePtr)malloc(sizeof(defNode));
 }

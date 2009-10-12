@@ -18,10 +18,14 @@
 #define USE_LIST 2
 #define PROGRAM_TEXT 3
 
+typedef struct definitionNode *defNodePtr;
+typedef struct definitionNode defNode;
+
 char getNextToken(char *delimeter, char *buffer, FILE *file);
 char loadModule();
 char buildModuleName(char *moduleNamePointer);
-char buildDefList(char *defList);
-struct definition getDefinition();
+defNodePtr buildDefList(defNodePtr defNodeP);
+struct definitionNode getDefinition();
 void buildUseList(int *useListPointer, int useQuantity);
 void buildProgramText(int *progTextPointer, int instructionQuantity);
+defNodePtr *dalloc(void);
