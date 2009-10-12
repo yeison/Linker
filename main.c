@@ -2,18 +2,20 @@
 
 #include "main.h"
 #define SYMBOL_SIZE 16
+#define MODULE_NAME_SIZE 32
+#define DEFLIST_SIZE 32
 
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
 
 struct definition{
 	char *symbol;
-	int relativeAddress;
+	char relativeAddress;
 };
 
 struct module {
-	char *moduleName[16];
-	struct definition definitionList[32];
+	char moduleName[MODULE_NAME_SIZE];
+	char definitionList[DEFLIST_SIZE];
 	char *useList;
 	char *programText;
 };
@@ -44,7 +46,7 @@ int main (int argc, const char *argv[]) {
 	printf("%s\n", loaded.moduleName);
 	
 	buildDefList(loaded.definitionList);
-	printf("definitionList[1]: %s\n", loaded.definitionList[1].symbol);
+	//printf("definitionList[1]: %s\n", loaded.definitionList);
 
 	
     return(0);
@@ -54,10 +56,9 @@ char buildModuleName(char *moduleNamePointer){
 	return getNextToken(blankSpace, moduleNamePointer, inputFile);
 }
 
-struct definition *buildDefList(struct definition *defList){
+char buildDefList(char *defList){
 	char i;
 	char symbolListSize;
-	struct definition *defListP = defList;
 	
 	getNextToken(blankSpace, &symbolListSize, inputFile);
 	char defQuantity = symbolListSize - '0';
@@ -65,12 +66,11 @@ struct definition *buildDefList(struct definition *defList){
 	
 	for (i = 1; i <= defQuantity; i++) {
 		printf("i: %d\n", i);
-		*defList = getDefinition();
-		defList = defList + i;
+		defList = getDefinition();
 	}
 	
 	//printf("defList: %c", defListPointer[1]);
-	return defListP;
+	return defList;
 }
 
 struct definition getDefinition(){
