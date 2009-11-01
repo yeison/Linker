@@ -5,10 +5,13 @@
 
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
+sNode symbolTable[MAX_SYMBOLS];
+char symbolOffset = 0;
 	
 int main (int argc, const char *argv[]) {
+	char i;
 	
-	struct module loaded;
+	module loaded;
 	
 	// If the user provides no argument, print the program's usage
 	if (argc < 2) {
@@ -34,6 +37,16 @@ int main (int argc, const char *argv[]) {
 	loaded.definitionList = dalloc();
 	loaded.definitionList = buildDefList(loaded.definitionList);
 	printList(loaded.definitionList);
+	
+	loaded.offset = 0; // Gets 0 until the useList works.
+	toSymbolTable(loaded.definitionList, loaded.offset);
+	
+	printf("From st: %c\n", symbolTable[0].address);
+	
+//	while (loaded.definitionList[i].symbol != NULL) {
+//		symbolTable[i] = makeSymbolNode(getDefNode(i), 1);
+//	}  // length(definitionList)
+	
 	
     exit(0);
 }
@@ -152,4 +165,31 @@ void printList(defNodePtr p){
 		p = (*p).next;
 		i++;
 	}
+}
+
+// Get the definition node at the location indicated by nodeNumber, from the definition list who's head is pointed to by the defNodePtr p.
+defNode getDefNode(char nodeNumber, defNodePtr p){
+	for (int i = 0; i < nodeNumber; i++) {
+		p = (*p).next;
+	}
+	return *p;
+}
+
+// Makes a symbol node, which contains the symbol and its absolute address.  The offset is the memory location where the module that this symbol belongs to begins.
+sNode makeSymbolNode(defNode def, char offset){
+	sNode temp;
+	temp.symbol = def.symbol;
+	temp.address = def.relativeAddress + offset;
+	return temp;
+}
+
+// Places the symbolNode passed into the global symbolTable array.
+void toSymbolTable(defNodePtr p, char moduleOffset){
+	int i = 0;
+	while (p != NULL) {
+		symbolTable[symbolOffset + i] = makeSymbolNode(*p, moduleOffset);
+		p = (*p).next;
+		i++;
+	}
+	symbolOffset += i;
 }
