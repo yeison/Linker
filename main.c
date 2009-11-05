@@ -1,16 +1,15 @@
-/* NOTE: You may want enable your text editor's word wrap functionality to read this source file.  Most major editors support this feature. */
+/* NOTE: You may want enable your text editor's word wrap functionality to read this source file.*/
 
 #include "main.h"
 #define DEFLIST_SIZE 32
 
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
-sNode symbolTable[MAX_SYMBOLS];
 char symbolOffset = 0;
+defNodePtr symbolTable[MAX_SYMBOLS];
 	
 int main (int argc, const char *argv[]) {
 	char i;
-	
 	module loaded;
 	
 	// If the user provides no argument, print the program's usage
@@ -37,18 +36,17 @@ int main (int argc, const char *argv[]) {
 	loaded.definitionList = dalloc();
 	loaded.definitionList = buildDefList(loaded.definitionList);
 	printList(loaded.definitionList);
+	printf("The relAddress: %d\n", (*symbolTable[0]).relativeAddress);	
+
 	
 	loaded.offset = 0; // Gets 0 until the useList works.
-	toSymbolTable(loaded.definitionList, loaded.offset);
 	
-	printf("From st: %c\n", symbolTable[0].address);
 	
 //	while (loaded.definitionList[i].symbol != NULL) {
 //		symbolTable[i] = makeSymbolNode(getDefNode(i), 1);
 //	}  // length(definitionList)
 	
-	
-    exit(0);
+	exit(0);
 }
 
 char buildModuleName(char *moduleNamePointer){
@@ -124,11 +122,11 @@ defNodePtr buildDefList(defNodePtr defNodeP){
 	printf("defQuantity: %d\n", defQuantity);
 	
 	for (char i = 1; i <= defQuantity; i++) {
-		printf("i: %d\n", i);
 		//Place the next definition into the next node
-		*(*defNodeP).next = getDefinition(); 
+		*(*defNodeP).next = getDefinition();
 		//Move the pointer to the next node.
 		defNodeP = (*defNodeP).next;
+		toSymbolTable(defNodeP);
 		//Alocate space for the next definition and referrence it with next
 		(*defNodeP).next = dalloc();
 	}
@@ -176,20 +174,30 @@ defNode getDefNode(char nodeNumber, defNodePtr p){
 }
 
 // Makes a symbol node, which contains the symbol and its absolute address.  The offset is the memory location where the module that this symbol belongs to begins.
-sNode makeSymbolNode(defNode def, char offset){
-	sNode temp;
-	temp.symbol = def.symbol;
-	temp.address = def.relativeAddress + offset;
-	return temp;
+//sNode makeSymbolNode(char *symbol, char relativeAddress){
+//	sNode temp = *sNalloc();
+//	strcpy(temp.symbol, symbol);
+//	temp.address = relativeAddress;
+//	return temp;
+//}
+//
+//sNode *sNalloc(void){
+//	return (sNode *)malloc(sizeof(sNode));
+//}
+
+void toSymbolTable(defNodePtr symbolNodePointer){
+	symbolTable[symbolOffset] = symbolNodePointer;
+	symbolOffset++;
 }
 
+
 // Places the symbolNode passed into the global symbolTable array.
-void toSymbolTable(defNodePtr p, char moduleOffset){
-	int i = 0;
-	while (p != NULL) {
-		symbolTable[symbolOffset + i] = makeSymbolNode(*p, moduleOffset);
-		p = (*p).next;
-		i++;
-	}
-	symbolOffset += i;
-}
+//void toSymbolTable(defNodePtr p, char moduleOffset){
+//	int i = 0;
+//	while (p != NULL) {
+//		symbolTable[symbolOffset + i] = makeSymbolNode(*p, moduleOffset);
+//		p = (*p).next;
+//		i++;
+//	}
+//	symbolOffset += i;
+//}

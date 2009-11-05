@@ -30,14 +30,16 @@ struct module{
 };
 
 struct definitionNode{
-	char symbol[SYMBOL_SIZE];
+	char *symbol[SYMBOL_SIZE];
 	char relativeAddress;
 	struct definitionNode *next;
+	char memberOfModule;
 };
 
 struct sNode{
-	char *symbol;
+	char *symbol[SYMBOL_SIZE];
 	short address;
+	char memberOfModule;
 };
 
 typedef struct module module;
@@ -55,5 +57,7 @@ struct definitionNode getDefinition();
 defNodePtr *dalloc(void);
 sNode addSymbol(defNode d, char offSet);
 defNode getDefNode(char nodeNumber, defNodePtr p);
-sNode makeSymbolNode(defNode d, char offSet);
-void toSymbolTable(defNodePtr p, char offSet);
+sNode makeSymbolNode(char *symbol, char relativeAddress);
+//void toSymbolTable(defNodePtr p, char offSet);
+void toSymbolTable(defNodePtr symbolNodePointer);
+sNode *sNalloc(void);
