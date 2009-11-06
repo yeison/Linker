@@ -36,14 +36,10 @@ int main (int argc, const char *argv[]) {
 	
 	loaded.definitionList = buildDefList(symbolTable);
 	printList(loaded.definitionList);
-
-	
 	loaded.offset = 0; // Gets 0 until the useList works.
 	
-	
-//	while (loaded.definitionList[i].symbol != NULL) {
-//		symbolTable[i] = makeSymbolNode(getDefNode(i), 1);
-//	}  // length(definitionList)
+	buildUseList(loaded.useList);
+	buildProgramText(loaded.programText);
 	
 	exit(0);
 }
@@ -52,12 +48,34 @@ char buildModuleName(char *moduleNamePointer){
 	return getNextToken(blankSpace, moduleNamePointer, inputFile);
 }
 
-void buildUseList(int *useListPointer, int useQuantity){
+void buildUseList(char *useListArray[]){
+	char *useBuffer;
+	getNextToken(blankSpace, useBuffer, inputFile);
+	char *useCount = malloc(sizeof(char));
+	*useCount = *useBuffer - '0';
+	useListArray[0] = useCount;
 	
+	for (char i = 1; i <= *useCount; i++) {
+		useBuffer = malloc(sizeof(int));
+		getNextToken(blankSpace, useBuffer, inputFile);
+		useListArray[i] = useBuffer;
+	}
 }
 
-void buildProgramText(int *progTextPointer, int instructionQuantity){
+void buildProgramText(ProgText *progTextArray[]){
+	char *progTextBuffer;
+	getNextToken(blankSpace, progTextBuffer, inputFile);
+	char progTextCount = *progTextBuffer - '0';
+	ProgText *textNode = malloc(sizeof(ProgText));
 
+	for (char i = 0; i < progTextCount; i++) {
+		getNextToken(blankSpace, progTextBuffer, inputFile);
+		(*textNode).type = *progTextBuffer;
+		getNextToken(blankSpace, progTextBuffer, inputFile);
+		(*textNode).instruction = *progTextBuffer;
+		progTextArray[i] = textNode;
+	}
+	
 }
 
 char getNextToken(char *delimiter, char *buffer, FILE *file){
@@ -120,7 +138,6 @@ defNodePtr buildDefList(defNodePtr symbolTable[]){
 	
 	getNextToken(blankSpace, &symbolListSize, inputFile);
 	char defQuantity = symbolListSize - '0';
-	printf("defQuantity: %d\n", defQuantity);
 	
 	for (char i = 1; i <= defQuantity; i++) {
 		//Place the next definition into the next node
