@@ -52,7 +52,7 @@ char loadModule();
 char buildModuleName(char *moduleNamePointer);
 void buildUseList(int *useListPointer, int useQuantity);
 void buildProgramText(int *progTextPointer, int instructionQuantity);
-defNodePtr buildDefList(defNodePtr defNodeP);
+defNodePtr buildDefList(defNodePtr symbolTable[]);
 struct definitionNode getDefinition();
 defNodePtr *dalloc(void);
 sNode addSymbol(defNode d, char offSet);

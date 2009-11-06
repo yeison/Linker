@@ -6,11 +6,11 @@
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
 char symbolOffset = 0;
-defNodePtr symbolTable[MAX_SYMBOLS];
 	
 int main (int argc, const char *argv[]) {
 	char i;
 	module loaded;
+	defNodePtr symbolTable[MAX_SYMBOLS];
 	
 	// If the user provides no argument, print the program's usage
 	if (argc < 2) {
@@ -111,7 +111,7 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 	exit(2);
 }
 
-defNodePtr buildDefList(defNodePtr defNodeP){
+defNodePtr buildDefList(defNodePtr symbolTable[]){
 	char symbolListSize;
 	(*defNodeP).next = dalloc();
 	defNodePtr defHead = (*defNodeP).next;
