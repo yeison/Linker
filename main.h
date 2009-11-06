@@ -36,14 +36,8 @@ struct definitionNode{
 	char memberOfModule;
 };
 
-struct sNode{
-	char *symbol[SYMBOL_SIZE];
-	short address;
-	char memberOfModule;
-};
 
 typedef struct module module;
-typedef struct sNode sNode;
 typedef struct definitionNode *defNodePtr;
 typedef struct definitionNode defNode;
 
