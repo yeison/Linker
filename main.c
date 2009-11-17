@@ -34,6 +34,7 @@ int main (int argc, const char *argv[]) {
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
 		printf("%s\n", loaded.moduleName);
+		//
 	
 	
 		buildDefList(loaded.definitionList);
