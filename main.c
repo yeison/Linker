@@ -1,16 +1,17 @@
 /* NOTE: You may want enable your text editor's word wrap functionality to read this source file.*/
 
 #include "main.h"
-#define DEFLIST_SIZE 32
 
 FILE *inputFile; // The file
 char *blankSpace = "[[:space:]]";
-char symbolOffset = 0;
 	
 int main (int argc, const char *argv[]) {
-	char i;
 	module loaded;
-	defNodePtr symbolTable[MAX_SYMBOLS];
+	loaded.offset = 0;
+	//SymbolTable below is a permanent structure to hold symbols and their absolute addresses.
+	defNodePtr symbolTable[MAX_TOTAL_SYMBOLS];
+	char symbolOffset = 0;
+	int moduleNumber = 1;
 	
 	// If the user provides no argument, print the program's usage
 	if (argc < 2) {
@@ -24,58 +25,134 @@ int main (int argc, const char *argv[]) {
 	//Check to see if fopen() was successful
 	if (inputFile == NULL) {
 		//If not, then print this message to the standard error output stream.
-		perror("Error: File not found. Make sure the file exists. If the file name contains spaces, then surround the whole name with quotes.\nError");
+		//perror("Error: File not found. Make sure the file exists. If the file name contains spaces, then surround the whole name with quotes.\nError");
 		//and exit with an error code of 1
 		exit(1);
 	}
+
+	
+	//The while-loop below iterates over each module.
+	while(buildModuleName(loaded.moduleName)) {
+		printf("%s\n", loaded.moduleName);
 	
 	
-	buildModuleName(loaded.moduleName);
-	printf("%s\n", loaded.moduleName);
+		buildDefList(loaded.definitionList);
+		char symbolsInNode = (char)loaded.definitionList[0];
+		//The for-loop below iterates through the presently loaded definitionList in order to migrate all of the definitionNodes to the symbol table.  The currently loaded module will be overwritten at the end of the outside for-loop.
+		for (char i = 1; i <= symbolsInNode; i++) {
+			//In the symbolTable, relativeAddress becomes absolute address. The variable name remains relativeAddress.
+			(*loaded.definitionList[i]).relativeAddress += loaded.offset;
+			symbolTable[i+symbolOffset] = loaded.definitionList[i];
+		}
+		symbolOffset += symbolsInNode;
+
+		//
+		buildUseList(loaded.useList);
 	
-	
-	loaded.definitionList = buildDefList(symbolTable);
-	printList(loaded.definitionList);
-	loaded.offset = 0; // Gets 0 until the useList works.
-	
-	buildUseList(loaded.useList);
-	buildProgramText(loaded.programText);
-	
+		//After the program text is read, we can return the size of the module.  This is saved in loaded.offset for the next module to know its starting address.
+		loaded.offset += buildProgramText(loaded.programText);
+		
+		moduleNumber++;
+	}
 	exit(0);
 }
 
-char buildModuleName(char *moduleNamePointer){
-	return getNextToken(blankSpace, moduleNamePointer, inputFile);
+char buildModuleName(char moduleNameArray[]){
+	return getNextToken(blankSpace, moduleNameArray, inputFile);
 }
 
 void buildUseList(char *useListArray[]){
-	char *useBuffer;
+	char *useBuffer = malloc(sizeof(int));
 	getNextToken(blankSpace, useBuffer, inputFile);
-	char *useCount = malloc(sizeof(char));
-	*useCount = *useBuffer - '0';
+	char useCount;
+	useCount = *useBuffer - '0';
 	useListArray[0] = useCount;
 	
-	for (char i = 1; i <= *useCount; i++) {
+	for (char i = 1; i <= useCount; i++) {
 		useBuffer = malloc(sizeof(int));
 		getNextToken(blankSpace, useBuffer, inputFile);
 		useListArray[i] = useBuffer;
 	}
 }
 
-void buildProgramText(ProgText *progTextArray[]){
-	char *progTextBuffer;
+char buildProgramText(ProgText *progTextArray[]){
+	char *progTextBuffer = malloc(sizeof(int));
 	getNextToken(blankSpace, progTextBuffer, inputFile);
-	char progTextCount = *progTextBuffer - '0';
+	char progTextCount = atoi(progTextBuffer);
+	progTextArray[0] = progTextCount;
 	ProgText *textNode = malloc(sizeof(ProgText));
 
-	for (char i = 0; i < progTextCount; i++) {
+	for (char i = 1; i <= progTextCount; i++) {
 		getNextToken(blankSpace, progTextBuffer, inputFile);
 		(*textNode).type = *progTextBuffer;
 		getNextToken(blankSpace, progTextBuffer, inputFile);
-		(*textNode).instruction = *progTextBuffer;
+		(*textNode).instruction = atoi(progTextBuffer);
 		progTextArray[i] = textNode;
+		textNode = malloc(sizeof(ProgText));
 	}
+	return progTextCount;
+}
+
+void buildDefList(defNodePtr symbolTable[]){
+	char symbolListSize;
+	defNodePtr defHead = dalloc();
+	defNodePtr defNodeP = defHead;
+	defNodePtr defNodeP2;
 	
+	getNextToken(blankSpace, &symbolListSize, inputFile);
+	char defQuantity = symbolListSize - '0';
+	symbolTable[0] = defQuantity;
+	
+	for (char i = 1; i <= defQuantity; i++) {
+		//Place the next definition into the next node
+		*defNodeP = getDefinition(*defNodeP);
+		symbolTable[i] = defNodeP;
+		//Alocate space for the next definition and referrence it with next
+		(*defNodeP).next = dalloc();
+		defNodeP2 = defNodeP;
+		//Move the pointer to the next node.
+		defNodeP = (*defNodeP).next;
+	}
+	if (defQuantity)
+		(*defNodeP2).next = NULL;	
+	//printf("defList: %c", defListPointer[1]);
+}
+
+defNode getDefinition(defNode temp){
+	char *stringBuffer = malloc(sizeof(int));
+	temp.symbol = malloc(sizeof(int));
+	
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	strcpy(temp.symbol, stringBuffer);
+	getNextToken(blankSpace, stringBuffer, inputFile);
+	temp.relativeAddress = atoi(stringBuffer);
+	
+	//	printf("symbol: %s", temp.symbol);
+	//	printf("rAddres: %s", temp.relativeAddress);
+	
+	return temp;
+}
+
+defNodePtr dalloc(void){
+	return (defNodePtr)malloc(sizeof(defNode));
+}
+
+void printList(defNodePtr p){
+	int i = 0;
+	while(p != NULL){
+		printf("Node %d Symbol: %s\n", i, (*p).symbol);
+		printf("Node %d rAddress: %d\n", i, (*p).relativeAddress);
+		p = (*p).next;
+		i++;
+	}
+}
+
+// Get the definition node at the location indicated by nodeNumber, from the definition list who's head is pointed to by the defNodePtr p.
+defNode getDefNode(char nodeNumber, defNodePtr p){
+	for (int i = 0; i < nodeNumber; i++) {
+		p = (*p).next;
+	}
+	return *p;
 }
 
 char getNextToken(char *delimiter, char *buffer, FILE *file){
@@ -124,70 +201,5 @@ char getNextToken(char *delimiter, char *buffer, FILE *file){
 	}
 	
 	// Release the memory used by the regular expression compile.
-	perror("No token was found, the input file may not have the proper format.\n");
-	exit(2);
-}
-
-defNodePtr buildDefList(defNodePtr symbolTable[]){
-	char symbolListSize;
-//	(*defNodeP).next = dalloc();
-//	defNodePtr defHead = (*defNodeP).next;
-	defNodePtr defHead = dalloc();
-	defNodePtr defNodeP = defHead;
-	defNodePtr defNodeP2;
-	
-	getNextToken(blankSpace, &symbolListSize, inputFile);
-	char defQuantity = symbolListSize - '0';
-	
-	for (char i = 1; i <= defQuantity; i++) {
-		//Place the next definition into the next node
-		*defNodeP = getDefinition();
-		symbolTable[i - 1] = defNodeP;
-		//Alocate space for the next definition and referrence it with next
-		(*defNodeP).next = dalloc();
-		defNodeP2 = defNodeP;
-		//Move the pointer to the next node.
-		defNodeP = (*defNodeP).next;
-	}
-	(*defNodeP2).next = NULL;
-	
-	//printf("defList: %c", defListPointer[1]);
-	return defHead;
-}
-
-defNode getDefinition(){
-	defNode temp;
-	char *stringBuffer[SYMBOL_SIZE];
-	
-	getNextToken(blankSpace, stringBuffer, inputFile);
-	strcpy(temp.symbol, stringBuffer);
-	getNextToken(blankSpace, stringBuffer, inputFile);
-	temp.relativeAddress = *stringBuffer - '0';
-	
-	//	printf("symbol: %s", temp.symbol);
-	//	printf("rAddres: %s", temp.relativeAddress);
-	
-	return temp;
-}
-
-defNodePtr *dalloc(void){
-	return (defNodePtr)malloc(sizeof(defNode));
-}
-
-void printList(defNodePtr p){
-	int i = 0;
-	while(p != NULL){
-		printf("Node %d Symbol: %s\n", i, (*p).symbol);
-		printf("Node %d rAddress: %d\n", i, (*p).relativeAddress);
-		p = (*p).next;
-		i++;
-	}
-}
-
-// Get the definition node at the location indicated by nodeNumber, from the definition list who's head is pointed to by the defNodePtr p.
-defNode getDefNode(char nodeNumber, defNodePtr p){
-	for (int i = 0; i < nodeNumber; i++) {
-		p = (*p).next;
-	}
-	return *p;
+	return 0;
 }
