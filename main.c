@@ -2,16 +2,16 @@
 
 #include "main.h"
 
-FILE *inputFile; // The file
-char *blankSpace = "[[:space:]]";
+FILE *inputFile; // The file.
+char *blankSpace = "[[:space:]]"; // Regular expression for blank spaces.
 	
 int main (int argc, const char *argv[]) {
 	module loaded;
 	loaded.offset = 0;
 	//SymbolTable below is a permanent structure to hold symbols and their absolute addresses.
 	defNodePtr symbolTable[MAX_TOTAL_SYMBOLS];
+	module moduleTable[MAX_MODULES];
 	char symbolOffset = 0;
-	int moduleNumber = 1;
 	
 	// If the user provides no argument, print the program's usage
 	if (argc < 2) {
@@ -25,12 +25,12 @@ int main (int argc, const char *argv[]) {
 	//Check to see if fopen() was successful
 	if (inputFile == NULL) {
 		//If not, then print this message to the standard error output stream.
-		//perror("Error: File not found. Make sure the file exists. If the file name contains spaces, then surround the whole name with quotes.\nError");
+		perror("Error: File not found. Make sure the file exists. If the file name contains spaces, then surround the whole name with quotes.\nError");
 		//and exit with an error code of 1
 		exit(1);
 	}
 
-	
+	int moduleNumber = 0;
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
 		printf("%s\n", loaded.moduleName);
@@ -38,23 +38,32 @@ int main (int argc, const char *argv[]) {
 	
 	
 		buildDefList(loaded.definitionList);
-		char symbolsInNode = (char)loaded.definitionList[0];
+		char symbolsInModule = (char)loaded.definitionList[0];
 		//The for-loop below iterates through the presently loaded definitionList in order to migrate all of the definitionNodes to the symbol table.  The currently loaded module will be overwritten at the end of the outside for-loop.
-		for (char i = 1; i <= symbolsInNode; i++) {
+		for (char i = 1; i <= symbolsInModule; i++) {
 			//In the symbolTable, relativeAddress becomes absolute address. The variable name remains relativeAddress.
 			(*loaded.definitionList[i]).relativeAddress += loaded.offset;
 			symbolTable[i+symbolOffset] = loaded.definitionList[i];
 		}
-		symbolOffset += symbolsInNode;
+		symbolOffset += symbolsInModule;
 
 		//
 		buildUseList(loaded.useList);
+		
 	
 		//After the program text is read, we can return the size of the module.  This is saved in loaded.offset for the next module to know its starting address.
 		loaded.offset += buildProgramText(loaded.programText);
 		
+		moduleTable[moduleNumber] = loaded;
 		moduleNumber++;
 	}
+	
+	//fclose(inputFile);
+	
+	for (int i = 0; i <= moduleNumber; i++) {
+		moduleTable[i].useList;
+	}
+	
 	exit(0);
 }
 
@@ -62,17 +71,20 @@ char buildModuleName(char moduleNameArray[]){
 	return getNextToken(blankSpace, moduleNameArray, inputFile);
 }
 
-void buildUseList(char *useListArray[]){
-	char *useBuffer = malloc(sizeof(int));
-	getNextToken(blankSpace, useBuffer, inputFile);
-	char useCount;
-	useCount = *useBuffer - '0';
-	useListArray[0] = useCount;
+void buildUseList(UseNode *useListArray[]){
+	char *useBuffer = malloc(sizeof(char)); //Allocate 1 byte for size of useList
+	getNextToken(blankSpace, useBuffer, inputFile);//Get the size of the useList
+	char useCount = atoi(useBuffer);//Convert the ascii to decimal
+	useListArray[0] = useCount; //Save the decimal value into the 0th array location
+	UseNode *use = malloc(sizeof(UseNode)); //Allocate space for the first UseNode
 	
 	for (char i = 1; i <= useCount; i++) {
-		useBuffer = malloc(sizeof(int));
-		getNextToken(blankSpace, useBuffer, inputFile);
-		useListArray[i] = useBuffer;
+		useBuffer = malloc(sizeof(int)); //Allocate space for the buffer (4 bytes, 32 bit cpu)
+		getNextToken(blankSpace, useBuffer, inputFile); //Store the symbol in the buffer
+		(*use).symbol = useBuffer; //Point use.symbol to allocated space for symbol
+		(*use).externalAddress = 0; //Initialize to 0 for testing later.
+		useListArray[i] = use; //Point array pointer to allocated space for UseNode
+		use = malloc(sizeof(UseNode)); //Allocate space for next UseNode
 	}
 }
 
