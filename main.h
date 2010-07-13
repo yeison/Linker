@@ -39,7 +39,7 @@ typedef struct UseNode UseNode;
 
 struct definitionNode{
 	char *symbol;
-	char relativeAddress;
+	int relativeAddress;
 	struct definitionNode *next;
 	char memberOfModule;
 };
@@ -49,7 +49,7 @@ typedef struct definitionNode defNode;
 
 struct module{
 	char moduleName[MODULE_NAME_SIZE];
-	defNodePtr definitionList[MAX_SYMBOLS];
+	defNode *definitionList[MAX_SYMBOLS];
 	UseNode *useList[MAX_USELIST];
 	ProgText *programText[MAX_INSTRUCTIONS];
 	int offset;
