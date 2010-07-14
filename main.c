@@ -32,13 +32,11 @@ int main (int argc, const char *argv[]) {
 	}
 
 	int moduleNumber = 0;
-	printf("Offsets");
+	printf("\n%-4s%-15s%-10s\t%s", "#", "Module", "Offset", "Use List");
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
 		printf("\n");
-		printf("Module %i - %i - %s", moduleNumber, loaded.offset, loaded.moduleName);
-		//
-	
+		printf("%-4i%-15s%-10i\t", moduleNumber, loaded.moduleName, loaded.offset);
 	
 		buildDefList(loaded.definitionList);
 		char symbolsInModule = (char)loaded.definitionList[0];
@@ -57,14 +55,14 @@ int main (int argc, const char *argv[]) {
 //			printf("%s ", *(loaded.definitionList[j + 1]));
 //			j++;
 //		}
-
+//
 		// Build the use list, and then print it
-//		int i = 0;
-//		while(i < loaded.useList[0]){
-//			printf("%s ", *(loaded.useList[i + 1]));
-//			i++;
-//		}
-//		printf("\n");
+		int i = 0;
+		while(i < loaded.useList[0]){
+			printf(" %s ", *(loaded.useList[i + 1]));
+			i++;
+		}
+		printf("\n");
 		
 	
 		//After the program text is read, we can return the size of the module.  This is saved in loaded.offset for the next module to know its starting address.
@@ -81,6 +79,7 @@ int main (int argc, const char *argv[]) {
 		defNode *sym = symbolTable[i];
 		printf("\n%s = %d", *sym, (*sym).relativeAddress);
 	}
+	printf("\n");
 	
 	for (int i = 0; i <= moduleNumber; i++) {
 		moduleTable[i].useList;
