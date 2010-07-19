@@ -13,4 +13,4 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-char getNextToken(char *delimiter, char *buffer, FILE *file);
+char getNextToken(char *buffer, FILE *file);

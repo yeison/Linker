@@ -9,14 +9,15 @@
 
 #include "tokenizer.h"
 
-char getNextToken(char *delimiter, char *buffer, FILE *file){
+char getNextToken(char *buffer, FILE *file){
+	char *blankSpace = "[[:space:]]"; // Regular expression for blank spaces.
 	char tokenLength = 0;
 	char newStatus = NULL;
 	char oldStatus;
 	char c;
 	regex_t regularExpression; // A regular expression type (regex_t)	
 	// Compile the regular expression.
-	if(regcomp(&regularExpression, delimiter, REG_EXTENDED) != 0){
+	if(regcomp(&regularExpression, blankSpace, REG_EXTENDED) != 0){
 		perror("Check your regexp!");
 		exit(1);
 	}
