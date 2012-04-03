@@ -28,7 +28,7 @@ int main (int argc, const char *argv[]) {
 	}
 
 	int moduleNumber = 0;
-	printf("\n%-4s%-15s%-10s\t%s\n", "#", "Module", "Offset", "Use List");
+	printf("\n%-4s%-15s%-10s\t%s\n", "#", "Module", "Offset", "Use-List");
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
 		printf("%-4i%-15s%-10i\t", moduleNumber, loaded.moduleName, loaded.offset);
@@ -75,10 +75,10 @@ int main (int argc, const char *argv[]) {
 	
 	//fclose(inputFile);
 	
-	printf("\n\nSymbol Table");
+	printf("\n%s\n","Symbol Table");
 	for(int i = 0; i < symbolOffset; i++){
-		defNode *sym = symbolTable[i];
-		printf("\n%s = %d", *sym, (*sym).relativeAddress);
+		defNodePtr sym = symbolTable[i];
+		printf("\n%s = %d", (*sym).symbol, (*sym).relativeAddress);
 	}
 	printf("\n\n");
 	
