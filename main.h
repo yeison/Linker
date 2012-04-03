@@ -37,19 +37,19 @@ struct UseNode {
 
 typedef struct UseNode UseNode;
 
-typedef struct {
+struct definitionNode{
 	char *symbol;
 	int relativeAddress;
 	struct definitionNode *next;
 	char memberOfModule;
-} definitionNode;
+};
 
 typedef struct definitionNode *defNodePtr;
-//typedef struct definitionNode defNode;
+typedef struct definitionNode defNode;
 
 struct module{
 	char moduleName[MODULE_NAME_SIZE];
-	definitionNode *definitionList[MAX_SYMBOLS];
+	defNode *definitionList[MAX_SYMBOLS];
 	UseNode *useList[MAX_USELIST];
 	ProgText *programText[MAX_INSTRUCTIONS];
 	int offset;

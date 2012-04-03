@@ -6,7 +6,7 @@ int main (int argc, const char *argv[]) {
 	loaded.offset = 0;
 	/*SymbolTable below is a permanent structure to hold symbols and their 
 	absolute addresses.*/
-	definitionNode *symbolTable[MAX_TOTAL_SYMBOLS];
+	defNode *symbolTable[MAX_TOTAL_SYMBOLS];
 	module moduleTable[MAX_MODULES];
 	char symbolOffset = 0;
 	
@@ -28,7 +28,7 @@ int main (int argc, const char *argv[]) {
 	}
 
 	int moduleNumber = 0;
-	printf("\n%-4s%-15s%-10s\t%s\n", "#", "Module", "Offset", "Use-List");
+	printf("\n%-4s%-15s%-10s\t%s\n", "#", "Module", "Offset", "Use List");
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
 		printf("%-4i%-15s%-10i\t", moduleNumber, loaded.moduleName, loaded.offset);
@@ -46,9 +46,9 @@ int main (int argc, const char *argv[]) {
 			symbolTable[i+symbolOffset] = loaded.definitionList[i + 1];
 		}
 		symbolOffset += symbolsInModule;
-	
+		
 		buildUseList(loaded.useList);
-	
+		
 //		int j = 0;
 //		while(j < loaded.definitionList[0]){
 //			printf("%s ", *(loaded.definitionList[j + 1]));
@@ -62,26 +62,26 @@ int main (int argc, const char *argv[]) {
 			i++;
 		}
 		printf("\n");
+		
 	
 		/*After the program text is read, we can return the size of the module.  
 		 This is saved in loaded.offset for the next module to know its starting 
 		 address.*/
 		loaded.offset += buildProgramText(loaded.programText);
-	
+		
 		moduleTable[moduleNumber] = loaded;
 		moduleNumber++;
 	}
 	
 	//fclose(inputFile);
-
-	printf("\n%s","Symbol Table\n");
+	
+	printf("\n\nSymbol Table");
 	for(int i = 0; i < symbolOffset; i++){
-	    definitionNode *sym = symbolTable[i];
-	    printf("\n%s = %d", *sym, (*sym).relativeAddress);
+		defNode *sym = symbolTable[i];
+		printf("\n%s = %d", *sym, (*sym).relativeAddress);
 	}
-
 	printf("\n\n");
-
+	
 	for (int i = 0; i <= moduleNumber; i++) {
 		moduleTable[i].useList;
 	}
