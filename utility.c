@@ -84,7 +84,7 @@ void buildDefList(defNodePtr symbolTable[]){
 	//printf("defList: %c", defListPointer[1]);
 }
 
-defNode getDefinition(defNode temp){
+definitionNode getDefinition(definitionNode temp){
 	char *stringBuffer = malloc(sizeof(int));
 	temp.symbol = malloc(sizeof(int));
 	
@@ -100,7 +100,7 @@ defNode getDefinition(defNode temp){
 }
 
 defNodePtr dalloc(void){
-	return (defNodePtr)malloc(sizeof(defNode));
+	return (defNodePtr)malloc(sizeof(definitionNode));
 }
 
 void printList(defNodePtr p){
@@ -115,7 +115,7 @@ void printList(defNodePtr p){
 
 /*Get the definition node at the location indicated by nodeNumber, from the 
  definition list who's head is pointed to by the defNodePtr p. */
-defNode getDefNode(char nodeNumber, defNodePtr p){
+definitionNode getDefNode(char nodeNumber, defNodePtr p){
 	for (int i = 0; i < nodeNumber; i++) {
 		p = (*p).next;
 	}
