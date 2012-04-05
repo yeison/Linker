@@ -26,11 +26,14 @@ void buildUseList(UseNode *useListArray[]){
 	UseNode *use = malloc(sizeof(UseNode)); //Allocate space for the first UseNode
 	
 	for (char i = 1; i <= useCount; i++) {
-		useBuffer = malloc(sizeof(int)); 
 		//Allocate space for the buffer (4 bytes, 32 bit cpu)
+		useBuffer = malloc(sizeof(int)); 
+
 		getNextToken( useBuffer, inputFile); 
+
 		//Store the symbol in the buffer
 		(*use).symbol = useBuffer; 
+
 		//Point use.symbol to allocated space for symbol
 		(*use).externalAddress = 0; 
 		//Initialize to 0 for testing later.

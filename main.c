@@ -3,7 +3,8 @@
 
 int main (int argc, const char *argv[]) {
 	module loaded;
-	loaded.offset = 0;
+        int offset = 0;
+
 	/*SymbolTable below is a permanent structure to hold symbols and their 
 	absolute addresses.*/
 	defNode *symbolTable[MAX_TOTAL_SYMBOLS];
@@ -31,6 +32,7 @@ int main (int argc, const char *argv[]) {
 	printf("\n%-4s%-15s%-10s\t%s\n", "#", "Module", "Offset", "Use-List");
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
+	        loaded.offset = offset;
 		printf("%-4i%-15s%-10i\t", moduleNumber, loaded.moduleName, loaded.offset);
 	
 		buildDefList(loaded.definitionList);
@@ -67,8 +69,7 @@ int main (int argc, const char *argv[]) {
 		/*After the program text is read, we can return the size of the module.  
 		 This is saved in loaded.offset for the next module to know its starting 
 		 address.*/
-		loaded.offset += buildProgramText(loaded.programText);
-		
+		offset += buildProgramText(loaded.programText);
 		moduleTable[moduleNumber] = loaded;
 		moduleNumber++;
 	}
@@ -82,11 +83,44 @@ int main (int argc, const char *argv[]) {
 	}
 	printf("\n\n");
 	
-	for (int i = 0; i <= moduleNumber; i++) {
-		moduleTable[i].useList;
-	}
-	
+        for (int i = 0; i < moduleNumber; i++) {
+                
+            char programSize = (char)moduleTable[i].programText[0];
+            for (int j = 1; j <= programSize; j++) {
+                ProgTextPtr progTextPtr = moduleTable[i].programText[j];
+                ProgText progText = *progTextPtr;
+
+                char type = progText.type;
+                int instruction = progText.instruction;
+                int new_instruction = instruction;
+
+                switch(type) {
+                    case 'I':
+                        new_instruction = instruction;
+                        break;
+                    case 'A':
+                        new_instruction = instruction;
+                        break;
+                    case 'R':
+                        new_instruction = instruction + moduleTable[i].offset;
+                        break;
+                    case 'E':
+                        new_instruction = instruction;
+                        break;
+                }
+
+                printf("%c %i -> %i\n", type, instruction, new_instruction);
+
+            }
+            printf("\n");
+        }
+
 	exit(0);
+}
+
+void resolve(ProgText progText) {
+
+
 }
 
 

@@ -27,14 +27,13 @@ struct ProgText {
 	char type;
 	int instruction;
 };
-
+typedef struct ProgText *ProgTextPtr;
 typedef struct ProgText ProgText;
 
 struct UseNode {
 	char *symbol;
 	char externalAddress;
 };
-
 typedef struct UseNode UseNode;
 
 struct definitionNode{
@@ -43,7 +42,6 @@ struct definitionNode{
 	struct definitionNode *next;
 	char memberOfModule;
 };
-
 typedef struct definitionNode *defNodePtr;
 typedef struct definitionNode defNode;
 
@@ -54,7 +52,7 @@ struct module{
 	ProgText *programText[MAX_INSTRUCTIONS];
 	int offset;
 };
-
 typedef struct module module;
+
 
 FILE *inputFile; // The file.
