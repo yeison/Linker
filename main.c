@@ -83,7 +83,15 @@ int main (int argc, const char *argv[]) {
 	}
 	printf("\n\n");
 	
+        // Pass 2
         for (int i = 0; i < moduleNumber; i++) {
+
+            char useListSize = (char)moduleTable[i].useList[0];
+            for ( int j = 1; j <= useListSize; j++) {
+                UseNode *uNptr = moduleTable[i].useList[j];
+                UseNode useNode = *uNptr;
+
+            }
                 
             char programSize = (char)moduleTable[i].programText[0];
             for (int j = 1; j <= programSize; j++) {
@@ -112,9 +120,8 @@ int main (int argc, const char *argv[]) {
                     case 'E':
                         sprintf(instructionStr, "%d", instruction);
                         extSuffix = atoi(&instructionStr[3]);
-                        symPtr = symbolTable[extSuffix];
-                        sym = *symPtr;
-                        externalAddress = sym.relativeAddress;
+                        symPtr = moduleTable[i].useList[extSuffix + 1];
+                        externalAddress = (*symPtr).relativeAddress;
                         new_instruction = instruction + externalAddress;
                         break;
                 }
