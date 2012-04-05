@@ -92,6 +92,11 @@ int main (int argc, const char *argv[]) {
 
                 char type = progText.type;
                 int instruction = progText.instruction;
+                char instructionStr[5];
+                defNodePtr symPtr;
+                defNode sym;
+                char extSuffix;
+                int externalAddress;
                 int new_instruction = instruction;
 
                 switch(type) {
@@ -105,11 +110,21 @@ int main (int argc, const char *argv[]) {
                         new_instruction = instruction + moduleTable[i].offset;
                         break;
                     case 'E':
-                        new_instruction = instruction;
+                        sprintf(instructionStr, "%d", instruction);
+                        extSuffix = atoi(&instructionStr[3]);
+                        symPtr = symbolTable[extSuffix];
+                        sym = *symPtr;
+                        externalAddress = sym.relativeAddress;
+                        new_instruction = instruction + externalAddress;
                         break;
                 }
 
-                printf("%c %i -> %i\n", type, instruction, new_instruction);
+                printf("%c %i -> %i \n ", type, instruction, new_instruction);
+
+                UseNode *uNptr = moduleTable[i].useList[1];
+                UseNode uN = *uNptr;
+
+                printf("%i %s\n", uN.externalAddress, uN.symbol);
 
             }
             printf("\n");

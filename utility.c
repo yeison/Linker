@@ -15,7 +15,7 @@ char buildModuleName(char moduleNameArray[]){
 }
 
 void buildUseList(UseNode *useListArray[]){
-	//Allocate 1 byte for size of useList
+	//Allocate 1 byte for size(count) of useList
 	char *useBuffer = malloc(sizeof(char)); 
 	//Get the size of the useList
 	getNextToken(useBuffer, inputFile);
@@ -23,24 +23,27 @@ void buildUseList(UseNode *useListArray[]){
 	char useCount = atoi(useBuffer);
 	//Save the decimal value into the 0th array location
 	useListArray[0] = useCount; 
-	UseNode *use = malloc(sizeof(UseNode)); //Allocate space for the first UseNode
+        //Allocate space for the first UseNode
+	UseNode *use = malloc(sizeof(UseNode)); 
 	
 	for (char i = 1; i <= useCount; i++) {
 		//Allocate space for the buffer (4 bytes, 32 bit cpu)
 		useBuffer = malloc(sizeof(int)); 
 
+		//Store the symbol in the buffer
 		getNextToken( useBuffer, inputFile); 
 
-		//Store the symbol in the buffer
+		//Point use.symbol to allocated space for symbol
 		(*use).symbol = useBuffer; 
 
-		//Point use.symbol to allocated space for symbol
-		(*use).externalAddress = 0; 
 		//Initialize to 0 for testing later.
-		useListArray[i] = use; 
+		(*use).externalAddress = 0; 
+
 		//Point array pointer to allocated space for UseNode
+		useListArray[i] = use; 
+
+		//Allocate space for next UseNode in linked list.
 		use = malloc(sizeof(UseNode)); 
-		//Allocate space for next UseNode
 	}
 }
 
