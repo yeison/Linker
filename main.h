@@ -33,7 +33,7 @@ typedef struct ProgText ProgText;
 
 struct UseNode {
 	char *symbol;
-	char externalAddress;
+	int externalAddress;
 };
 typedef struct UseNode UseNode;
 

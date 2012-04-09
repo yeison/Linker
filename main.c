@@ -28,6 +28,7 @@ int main (int argc, const char *argv[]) {
 		exit(1);
 	}
 
+        /*  -------- Pass 1 -------  */
 	int moduleNumber = 0;
 	printf("\n%-4s%-15s%-10s\t%s\n", "#", "Module", "Offset", "Use-List");
 	//The while-loop below iterates over each module.
@@ -75,6 +76,8 @@ int main (int argc, const char *argv[]) {
 	}
 	
 	//fclose(inputFile);
+
+        /* ----- Print Symbol Table ----- */
 	
 	printf("\n%s\n","Symbol Table");
 	for(int i = 0; i < symbolOffset; i++){
@@ -83,14 +86,20 @@ int main (int argc, const char *argv[]) {
 	}
 	printf("\n\n");
 	
-        // Pass 2
+        /*  --------- Pass 2 --------- */
         for (int i = 0; i < moduleNumber; i++) {
 
             char useListSize = (char)moduleTable[i].useList[0];
-            for ( int j = 1; j <= useListSize; j++) {
-                UseNode *uNptr = moduleTable[i].useList[j];
-                UseNode useNode = *uNptr;
+            for ( int j = 1; j <= useListSize; j++ ) {
+                UseNode *useNodePtr = moduleTable[i].useList[j];
+                //A Hash Table would be nicer here.  We can address that later.
+                for (int k = 0; k < symbolOffset; k++) {
+                    defNodePtr sym = symbolTable[k];
 
+                    if(!strcmp((*useNodePtr).symbol, (*sym).symbol)) {
+                        (*useNodePtr).externalAddress = (*sym).relativeAddress;
+                    }
+                }
             }
                 
             char programSize = (char)moduleTable[i].programText[0];
@@ -101,37 +110,44 @@ int main (int argc, const char *argv[]) {
                 char type = progText.type;
                 int instruction = progText.instruction;
                 char instructionStr[5];
-                defNodePtr symPtr;
-                defNode sym;
-                char extSuffix;
+                UseNode *useNodePtr;
+                UseNode useNode;
+                char externalSuffix;
+                char externalPrefix;
                 int externalAddress;
                 int new_instruction = instruction;
 
                 switch(type) {
+
                     case 'I':
                         new_instruction = instruction;
                         break;
+
                     case 'A':
                         new_instruction = instruction;
                         break;
+
                     case 'R':
                         new_instruction = instruction + moduleTable[i].offset;
                         break;
+
                     case 'E':
                         sprintf(instructionStr, "%d", instruction);
-                        extSuffix = atoi(&instructionStr[3]);
-                        symPtr = moduleTable[i].useList[extSuffix + 1];
-                        externalAddress = (*symPtr).relativeAddress;
-                        new_instruction = instruction + externalAddress;
+                        externalSuffix = atoi(&instructionStr[1]);
+                        //ASCII conversion
+                        externalPrefix = instructionStr[0] - 48;
+                        useNodePtr = moduleTable[i].useList[externalSuffix + 1];
+                        useNode = *useNodePtr;
+                    //printf("%s ~^~  %i ~~~ \n", useNode.symbol, useNode.externalAddress);
+                        externalAddress = useNode.externalAddress;
+                        new_instruction = externalPrefix*1000 + externalAddress;
                         break;
                 }
 
-                printf("%c %i -> %i \n ", type, instruction, new_instruction);
+                printf("%c %i -> %i \n", type, instruction, new_instruction );
 
-                UseNode *uNptr = moduleTable[i].useList[1];
-                UseNode uN = *uNptr;
 
-                printf("%i %s\n", uN.externalAddress, uN.symbol);
+                //printf("%i %s\n", uN.externalAddress, uN.symbol);
 
             }
             printf("\n");
@@ -140,9 +156,5 @@ int main (int argc, const char *argv[]) {
 	exit(0);
 }
 
-void resolve(ProgText progText) {
-
-
-}
 
 
