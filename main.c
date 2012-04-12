@@ -77,6 +77,13 @@ int main (int argc, const char *argv[]) {
 	}
 	
 	//fclose(inputFile);
+        /* ----- Convert Symbol Table to Linked List ---- */
+
+        for(int i = 0; i < symbolOffset - 1 ; i++) {
+            defNodePtr sym_i = symbolTable[i];
+
+            (*sym_i).next = symbolTable[i+1];
+        }
 
         /* ----- Print Symbol Table ----- */
 	
@@ -92,13 +99,16 @@ int main (int argc, const char *argv[]) {
                 continue;
             }
                 
-            for(int j = i + 1; j < symbolOffset; j++){
+            int j = i + 1;
+            while(j < symbolOffset){
 
                 defNodePtr sym_j = symbolTable[j];
                 if ( !strcmp((*sym_i).symbol, (*sym_j).symbol) ) {
                     printf("%s = %d, Error: This symbol is multiply defined; first value used.\n", (*sym_i).symbol, (*sym_i).relativeAddress);
+                    symbolTable[j] = sym_i;
                     break;
                 } 
+                j++;
             }
             printf("%s = %d \n", (*sym_i).symbol, (*sym_i).relativeAddress);
         }
