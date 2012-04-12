@@ -2,8 +2,9 @@
 #include "utility.h"
 
 int main (int argc, const char *argv[]) {
-	module loaded;
-        int offset = 0;
+    module loaded;
+    int offset = 0;
+    char errorString [1000];
 
 	/*SymbolTable below is a permanent structure to hold symbols and their 
 	absolute addresses.*/
@@ -34,19 +35,19 @@ int main (int argc, const char *argv[]) {
 	//The while-loop below iterates over each module.
 	while(buildModuleName(loaded.moduleName)) {
 	        loaded.offset = offset;
-		printf("%-4i%-15s%-10i\t", moduleNumber, loaded.moduleName, loaded.offset);
+		printf("%-4i%-15s%-10i\t", moduleNumber + 1, loaded.moduleName, loaded.offset);
 	
 		buildDefList(loaded.definitionList);
 		char symbolsInModule = (char)loaded.definitionList[0];
 		/*The for-loop below iterates through the presently loaded 
 		 definitionList in order to migrate all of the definitionNodes to the 
 		 symbol table.  The currently loaded module will be overwritten at the 
-		 end of the outside for-loop.*/
+		 end of the outer for-loop.*/
 		for (char i = 0; i < symbolsInModule; i++) {			
 			/*In the symbolTable, relativeAddress becomes absolute address. The 
 			 variable name remains relativeAddress.*/
 			(*loaded.definitionList[i + 1]).relativeAddress += loaded.offset;
-			symbolTable[i+symbolOffset] = loaded.definitionList[i + 1];
+		        symbolTable[i+symbolOffset] = loaded.definitionList[i + 1];
 		}
 		symbolOffset += symbolsInModule;
 		
@@ -80,13 +81,32 @@ int main (int argc, const char *argv[]) {
         /* ----- Print Symbol Table ----- */
 	
 	printf("\n%s\n","Symbol Table");
-	for(int i = 0; i < symbolOffset; i++){
-		defNodePtr sym = symbolTable[i];
-		printf("\n%s = %d", (*sym).symbol, (*sym).relativeAddress);
-	}
+        for(int i = 0; i < symbolOffset; i++){
+            if( symbolOffset == 0) 
+                break;
+
+            defNodePtr sym_i = symbolTable[i];
+
+            if( symbolOffset == 1 ){
+                printf("%s = %d \n", (*sym_i).symbol, (*sym_i).relativeAddress);
+                continue;
+            }
+                
+            for(int j = i + 1; j < symbolOffset; j++){
+
+                defNodePtr sym_j = symbolTable[j];
+                if ( !strcmp((*sym_i).symbol, (*sym_j).symbol) ) {
+                    printf("%s = %d, Error: This symbol is multiply defined; first value used.\n", (*sym_i).symbol, (*sym_i).relativeAddress);
+                    break;
+                } 
+            }
+            printf("%s = %d \n", (*sym_i).symbol, (*sym_i).relativeAddress);
+        }
 	printf("\n\n");
 	
         /*  --------- Pass 2 --------- */
+        int memoryMapCounter  = 0;
+        printf("Memory Map\n");
         for (int i = 0; i < moduleNumber; i++) {
 
             char useListSize = (char)moduleTable[i].useList[0];
@@ -97,7 +117,14 @@ int main (int argc, const char *argv[]) {
                     defNodePtr sym = symbolTable[k];
 
                     if(!strcmp((*useNodePtr).symbol, (*sym).symbol)) {
-                        (*useNodePtr).externalAddress = (*sym).relativeAddress;
+                        if((*useNodePtr).externalAddress != 0){
+                            char error[100]; 
+                            sprintf(error, "Symbol already defined\n");
+                            strcat(errorString, error);
+                            continue;
+                        } else {
+                            (*useNodePtr).externalAddress = (*sym).relativeAddress;
+                        }
                     }
                 }
             }
@@ -112,9 +139,9 @@ int main (int argc, const char *argv[]) {
                 char instructionStr[5];
                 UseNode *useNodePtr;
                 UseNode useNode;
+                int externalAddress;
                 char externalSuffix;
                 char externalPrefix;
-                int externalAddress;
                 int new_instruction = instruction;
 
                 switch(type) {
@@ -144,7 +171,8 @@ int main (int argc, const char *argv[]) {
                         break;
                 }
 
-                printf("%c %i -> %i \n", type, instruction, new_instruction );
+                printf("%i: %c %i -> %i \n", memoryMapCounter, type, instruction, new_instruction );
+                memoryMapCounter++;
 
 
                 //printf("%i %s\n", uN.externalAddress, uN.symbol);
@@ -154,6 +182,28 @@ int main (int argc, const char *argv[]) {
         }
 
 	exit(0);
+}
+
+int findDuplicateDefinition (defNodePtr defPtr) {
+    defNode    definition;
+    defNode    nextDef;
+    
+    definition = *defPtr;
+
+    printf("^~~%i\n", (*defPtr).next);
+    while ((*defPtr).next != NULL) {
+        defPtr = definition.next;
+        nextDef = *defPtr;
+
+        printf("%s ~~ %s\n", definition.symbol, nextDef.symbol);
+        if (!strcmp(definition.symbol, nextDef.symbol)) {
+            return 1;
+        }
+        
+        definition = nextDef;
+    }
+
+    return 0;
 }
 
 

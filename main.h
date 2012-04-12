@@ -13,7 +13,7 @@
 #include <string.h>
 #include <regex.h>
 #include <stdlib.h>
-//#include "uthash.h"
+#include "uthash.h"
 
 #define MAXMEM 500
 #define MODULE_NAME_SIZE 14

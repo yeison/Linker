@@ -17,3 +17,4 @@ defNodePtr dalloc(void);
 defNode getDefNode(char nodeNumber, defNodePtr p);
 //void toSymbolTable(defNodePtr p, char offSet);
 void toSymbolTable(defNodePtr symbolNodePointer);
+unsigned long hash(unsigned char *str);
