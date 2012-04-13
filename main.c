@@ -77,7 +77,7 @@ int main (int argc, const char *argv[]) {
 	}
 	
 	//fclose(inputFile);
-        /* ----- Convert Symbol Table to Linked List ---- */
+        /* ----- Creat from Symbol Table a Linked List ---- */
 
         for(int i = 0; i < symbolOffset - 1 ; i++) {
             defNodePtr sym_i = symbolTable[i];
@@ -88,30 +88,23 @@ int main (int argc, const char *argv[]) {
         /* ----- Print Symbol Table ----- */
 	
 	printf("\n%s\n","Symbol Table");
-        for(int i = 0; i < symbolOffset; i++){
-            if( symbolOffset == 0) 
-                break;
 
-            defNodePtr sym_i = symbolTable[i];
-
-            if( symbolOffset == 1 ){
-                printf("%s = %d \n", (*sym_i).symbol, (*sym_i).relativeAddress);
-                continue;
-            }
+        defNodePtr sym_i = symbolTable[0];
+//!
+        while (sym_i != NULL ){
+            if ( findRemoveDuplicateDefinition(sym_i) ) {
+                printf("%s = %d, Error: This symbol is multiply defined; first value used.\n", (*sym_i).symbol, (*sym_i).relativeAddress);
                 
-            int j = i + 1;
-            while(j < symbolOffset){
-
-                defNodePtr sym_j = symbolTable[j];
-                if ( !strcmp((*sym_i).symbol, (*sym_j).symbol) ) {
-                    printf("%s = %d, Error: This symbol is multiply defined; first value used.\n", (*sym_i).symbol, (*sym_i).relativeAddress);
-                    symbolTable[j] = sym_i;
-                    break;
-                } 
-                j++;
+               
+            } else {
+                printf("%s = %d\n", (*sym_i).symbol, (*sym_i).relativeAddress);
             }
-            printf("%s = %d \n", (*sym_i).symbol, (*sym_i).relativeAddress);
+
+            sym_i = (*sym_i).next;
+            
         }
+
+
 	printf("\n\n");
 	
         /*  --------- Pass 2 --------- */
@@ -194,26 +187,29 @@ int main (int argc, const char *argv[]) {
 	exit(0);
 }
 
-int findDuplicateDefinition (defNodePtr defPtr) {
+/* Pass header of Symbol Table linked-list, remove dup and return 1. */
+int findRemoveDuplicateDefinition (defNodePtr defPtr) {
+    int  returnValue = 0;
     defNode    definition;
     defNode    nextDef;
     
     definition = *defPtr;
 
-    printf("^~~%i\n", (*defPtr).next);
-    while ((*defPtr).next != NULL) {
-        defPtr = definition.next;
-        nextDef = *defPtr;
+    while (definition.next != NULL) {
+        defNodePtr nextDefPtr = definition.next;
+        nextDef = *nextDefPtr;
 
-        printf("%s ~~ %s\n", definition.symbol, nextDef.symbol);
         if (!strcmp(definition.symbol, nextDef.symbol)) {
-            return 1;
+            (*defPtr).next = nextDef.next;
+            definition = nextDef;
+            returnValue = 1;
+        } else {
+            definition = nextDef;
         }
         
-        definition = nextDef;
     }
 
-    return 0;
+    return returnValue;
 }
 
 
