@@ -120,14 +120,7 @@ int main (int argc, const char *argv[]) {
                     defNodePtr sym = symbolTable[k];
 
                     if(!strcmp((*useNodePtr).symbol, (*sym).symbol)) {
-                        if((*useNodePtr).externalAddress != 0){
-                            char error[100]; 
-                            sprintf(error, "Symbol already defined\n");
-                            strcat(errorString, error);
-                            continue;
-                        } else {
-                            (*useNodePtr).externalAddress = (*sym).relativeAddress;
-                        }
+                        (*useNodePtr).externalAddress = (*sym).relativeAddress;
                     }
                 }
             }
@@ -143,9 +136,10 @@ int main (int argc, const char *argv[]) {
                 UseNode *useNodePtr;
                 UseNode useNode;
                 int externalAddress;
-                char externalSuffix;
-                char externalPrefix;
+                int externalSuffix;
+                int externalPrefix;
                 int new_instruction = instruction;
+                char *addressError = NULL;
 
                 switch(type) {
 
@@ -166,15 +160,23 @@ int main (int argc, const char *argv[]) {
                         externalSuffix = atoi(&instructionStr[1]);
                         //ASCII conversion
                         externalPrefix = instructionStr[0] - 48;
-                        useNodePtr = moduleTable[i].useList[externalSuffix + 1];
-                        useNode = *useNodePtr;
+                        if(externalSuffix < useListSize){
+                            useNodePtr = moduleTable[i].useList[externalSuffix + 1];
+                            useNode = *useNodePtr;
                     //printf("%s ~^~  %i ~~~ \n", useNode.symbol, useNode.externalAddress);
-                        externalAddress = useNode.externalAddress;
-                        new_instruction = externalPrefix*1000 + externalAddress;
+                            externalAddress = useNode.externalAddress;
+                            new_instruction = externalPrefix*1000 + externalAddress;
+                        } else {
+                            addressError = "Error: External address exceeds length of use list; treated as immediate.";
+                        }
                         break;
                 }
 
-                printf("%i: %c %i -> %i \n", memoryMapCounter, type, instruction, new_instruction );
+                if(addressError == NULL){
+                    printf("%i: %c %i -> %i \n", memoryMapCounter, type, instruction, new_instruction );
+                } else {
+                    printf("%i: %c %i -> %i; %s\n", memoryMapCounter, type, instruction, new_instruction, addressError );
+                }
                 memoryMapCounter++;
 
 
