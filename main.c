@@ -72,6 +72,7 @@ int main (int argc, const char *argv[]) {
 		 This is saved in loaded.offset for the next module to know its starting 
 		 address.*/
 		offset += buildProgramText(loaded.programText);
+                loaded.size = offset;
 		moduleTable[moduleNumber] = loaded;
 		moduleNumber++;
 	}
@@ -136,10 +137,15 @@ int main (int argc, const char *argv[]) {
                 UseNode *useNodePtr;
                 UseNode useNode;
                 int externalAddress;
-                int externalSuffix;
-                int externalPrefix;
+                int instructionSuffix;
+                int instructionPrefix;
                 int new_instruction = instruction;
                 char *addressError = NULL;
+
+                sprintf(instructionStr, "%d", instruction);
+                instructionSuffix = atoi(&instructionStr[1]);
+                //ASCII conversion
+                instructionPrefix = instructionStr[0] - 48;
 
                 switch(type) {
 
@@ -148,24 +154,30 @@ int main (int argc, const char *argv[]) {
                         break;
 
                     case 'A':
-                        new_instruction = instruction;
+                        if(instructionSuffix > MACHINE_SIZE){
+                            new_instruction = instructionPrefix*1000 + 0; 
+                            addressError = "Error: Absolute address exceeds machine size; zero used.";
+                        } else {
+                            new_instruction = instruction;
+                        }
                         break;
 
                     case 'R':
-                        new_instruction = instruction + moduleTable[i].offset;
+                        if(instructionSuffix > moduleTable[i].size){
+                            new_instruction = instructionPrefix*1000 + 0; 
+                            addressError = "Error: Relative address exceeds module size; zero used.";
+                        } else {
+                            new_instruction = instruction + moduleTable[i].offset;
+                        }
                         break;
 
                     case 'E':
-                        sprintf(instructionStr, "%d", instruction);
-                        externalSuffix = atoi(&instructionStr[1]);
-                        //ASCII conversion
-                        externalPrefix = instructionStr[0] - 48;
-                        if(externalSuffix < useListSize){
-                            useNodePtr = moduleTable[i].useList[externalSuffix + 1];
+                        if(instructionSuffix < useListSize){
+                            useNodePtr = moduleTable[i].useList[instructionSuffix + 1];
                             useNode = *useNodePtr;
                     //printf("%s ~^~  %i ~~~ \n", useNode.symbol, useNode.externalAddress);
                             externalAddress = useNode.externalAddress;
-                            new_instruction = externalPrefix*1000 + externalAddress;
+                            new_instruction = instructionPrefix*1000 + externalAddress;
                         } else {
                             addressError = "Error: External address exceeds length of use list; treated as immediate.";
                         }

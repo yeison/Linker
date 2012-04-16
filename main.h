@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include "uthash.h"
 
-#define MAXMEM 500
+#define MACHINE_SIZE 249
 #define MODULE_NAME_SIZE 14
 #define SYMBOL_SIZE 8
 #define MAX_SYMBOLS 5
@@ -52,6 +52,7 @@ struct module{
 	UseNode *useList[MAX_USELIST];
 	ProgText *programText[MAX_INSTRUCTIONS];
 	int offset;
+        int size;
 };
 typedef struct module module;
 
