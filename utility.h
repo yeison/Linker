@@ -11,7 +11,7 @@ char loadModule();
 char buildModuleName(char *moduleNamePointer);
 void buildUseList(UseNode *useListArray[]);
 char buildProgramText(ProgText *progTextArray[]);
-void buildDefList(defNodePtr symbolTable[]);
+void buildDefList(defNodePtr symbolTable[], char moduleNumber);
 struct definitionNode getDefinition();
 defNodePtr dalloc(void);
 defNode getDefNode(char nodeNumber, defNodePtr p);

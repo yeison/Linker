@@ -20,7 +20,7 @@
 #define SYMBOL_SIZE 8
 #define MAX_SYMBOLS 5
 #define MAX_TOTAL_SYMBOLS 9
-#define	MAX_USELIST 4
+#define	MAX_USELIST 5
 #define MAX_MODULES 7
 #define MAX_INSTRUCTIONS 11
 
@@ -34,6 +34,7 @@ typedef struct ProgText ProgText;
 struct UseNode {
 	char *symbol;
 	int externalAddress;
+        char used;
 };
 typedef struct UseNode UseNode;
 
@@ -42,6 +43,7 @@ struct definitionNode{
 	int relativeAddress;
 	struct definitionNode *next;
 	char memberOfModule;
+        char used;
 };
 typedef struct definitionNode *defNodePtr;
 typedef struct definitionNode defNode;

@@ -65,7 +65,7 @@ char buildProgramText(ProgText *progTextArray[]){
 	return progTextCount;
 }
 
-void buildDefList(defNodePtr symbolTable[]){
+void buildDefList(defNodePtr symbolTable[], char moduleNumber){
 	char symbolListSize;
 	defNodePtr defHead = dalloc();
 	defNodePtr defNodeP = defHead;
@@ -78,6 +78,7 @@ void buildDefList(defNodePtr symbolTable[]){
 	for (char i = 1; i <= defQuantity; i++) {
 		//Place the next definition into the next node
 		*defNodeP = getDefinition(*defNodeP);
+                (*defNodeP).memberOfModule = moduleNumber;
 		symbolTable[i] = defNodeP;
 		//Alocate space for the next definition and referrence it with next
 		(*defNodeP).next = dalloc();
