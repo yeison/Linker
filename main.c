@@ -2,14 +2,14 @@
 #include "utility.h"
 
 int main (int argc, const char *argv[]) {
-    module loaded;
+    Module loaded;
     int offset = 0;
     char warningString [1000];
 
     /*SymbolTable below is a permanent structure to hold symbols and their 
     absolute addresses.*/
-    defNode *symbolTable[MAX_TOTAL_SYMBOLS];
-    module moduleTable[MAX_MODULES];
+    DefNode *symbolTable[MAX_TOTAL_SYMBOLS];
+    Module moduleTable[MAX_MODULES];
     char symbolOffset = 0;
 
     // If the user provides no argument, print the program's usage
@@ -53,13 +53,6 @@ int main (int argc, const char *argv[]) {
 		
         buildUseList(loaded.useList);
 		
-//		int j = 0;
-//		while(j < loaded.definitionList[0]){
-//			printf("%s ", *(loaded.definitionList[j + 1]));
-//			j++;
-//		}
-//
-		// Build the use list, and then print it
         int i = 0;
         while(i < loaded.useList[0]){
             printf(" %s ", *(loaded.useList[i + 1]));
@@ -76,12 +69,16 @@ int main (int argc, const char *argv[]) {
         moduleTable[moduleNumber] = loaded;
         moduleNumber++;
     }
+
+    if (symbolOffset > MAX_TOTAL_SYMBOLS)
+        perror("MAX_TOTAL_SYMBOLS value exceeded.\n");
 	
-    //fclose(inputFile);
+    fclose(inputFile);
+
     /* ----- Create from Symbol Table a Linked List ---- */
 
     for(int i = 0; i < symbolOffset - 1 ; i++) {
-        defNodePtr sym_i = symbolTable[i];
+        DefNodePtr sym_i = symbolTable[i];
             (*sym_i).next = symbolTable[i+1];
     }
 
@@ -89,23 +86,20 @@ int main (int argc, const char *argv[]) {
 	
     printf("\n%s\n","Symbol Table");
 
-    defNodePtr sym_i = symbolTable[0];
+    DefNodePtr sym_i = symbolTable[0];
     while (sym_i != NULL ){
         if ( findRemoveDuplicateDefinition(sym_i) ) {
-            printf("%s = %d, Error: This symbol is multiply defined; first value used.\n", (*sym_i).symbol, (*sym_i).relativeAddress);
-                
-               
+            printf("%s = %d, Error: This symbol is multiply defined; first value used.\n", \
+                     (*sym_i).symbol, (*sym_i).relativeAddress);
         } else {
             printf("%s = %d\n", (*sym_i).symbol, (*sym_i).relativeAddress);
         }
 
         sym_i = (*sym_i).next;
-            
     }
 
-
     printf("\n\n");
-	
+
     /*  --------- Pass 2 --------- */
     int memoryMapCounter  = 0;
     printf("Memory Map\n");
@@ -116,7 +110,7 @@ int main (int argc, const char *argv[]) {
             UseNode *useNodePtr = moduleTable[i].useList[j];
             //A Hash Table would be nicer here.  We can address that later.
             for (int k = 0; k < symbolOffset; k++) {
-                defNodePtr sym = symbolTable[k];
+                DefNodePtr sym = symbolTable[k];
                    
                 if(!strcmp((*useNodePtr).symbol, (*sym).symbol)) {
  
@@ -127,9 +121,7 @@ int main (int argc, const char *argv[]) {
                         //Save a ptr to this matching useNode.  We can check later if
                         //this symbol definition was used or not by E type reference.
                         (*useNodePtr).externalAddress = (*sym).relativeAddress;
-                        //printf("^^~~UNPA: %s ~~ %s ~~~ %i ~~~%i ~~~%i\n", (*useNodePtr).symbol, (*sym).symbol, (*sym).useNodeCount, useNodeCount, useNodePtr);
                         (*sym).used = 1;
-                        //printf("^^~~UNPA: %s ~~ %s ~~~ %i ~~~%i ~~~%i\n", (*useNodePtr).symbol, (*sym).symbol, (*sym).useNodeCount, useNodeCount, useNodePtr);
                     }
                 }
             }
@@ -157,57 +149,58 @@ int main (int argc, const char *argv[]) {
 
             switch(type) {
 
-                case 'I':
-                    new_instruction = instruction;
-                    break;
+            case 'I':
+                new_instruction = instruction;
+                break;
 
-                case 'A':
-                    if(instructionSuffix > MACHINE_SIZE){
-                        new_instruction = instructionPrefix*1000 + 0; 
-                        addressError = "Error: Absolute address exceeds machine size; zero used.";
-                    } else {
-                        new_instruction = instruction;
-                    }
-                    break;
-
-                case 'R':
-                    if(instructionSuffix > moduleTable[i].size){
-                        new_instruction = instructionPrefix*1000 + 0; 
-                        addressError = "Error: Relative address exceeds module size; zero used.";
-                    } else {
-                        new_instruction = instruction + moduleTable[i].offset;
-                    }
-                    break;
-
-                case 'E':
-                    if(instructionSuffix < useListSize){
-                        useNodePtr = moduleTable[i].useList[instructionSuffix + 1];
-                        useNode = *useNodePtr;
-                        externalAddress = useNode.externalAddress;
-
-                        if(externalAddress == 0){
-                            addressError = "Error: Symbol used but not defined; zero used.";
-                        }
-                        
-                        (*useNodePtr).used = 1;
-                        new_instruction = instructionPrefix*1000 + externalAddress;
-
-                    } else {
-                        addressError = "Error: External address exceeds length of use list; treated as immediate.";
-                    }
-                    break;
-                }
-
-                if(addressError == NULL){
-                    printf("%i: %c %i -> %i \n", memoryMapCounter, type, instruction, new_instruction );
+            case 'A':
+                if(instructionSuffix > MACHINE_SIZE){
+                    new_instruction = instructionPrefix*1000 + 0; 
+                    addressError = "Error: Absolute address exceeds machine size; zero used.";
                 } else {
-                    printf("%i: %c %i -> %i; %s\n", memoryMapCounter, type, instruction, new_instruction, addressError );
+                    new_instruction = instruction;
                 }
-                memoryMapCounter++;
+                break;
 
+            case 'R':
+                if(instructionSuffix > moduleTable[i].size){
+                    new_instruction = instructionPrefix*1000 + 0; 
+                    addressError = "Error: Relative address exceeds module size; zero used.";
+                } else {
+                    new_instruction = instruction + moduleTable[i].offset;
+                }
+                break;
 
+            case 'E':
+                if(instructionSuffix < useListSize){
+                    useNodePtr = moduleTable[i].useList[instructionSuffix + 1];
+                    useNode = *useNodePtr;
+                    externalAddress = useNode.externalAddress;
+
+                    if(externalAddress == 0){
+                        addressError = "Error: Symbol used but not defined; zero used.";
+                    }
+                        
+                    (*useNodePtr).used = 1;
+                    new_instruction = instructionPrefix*1000 + externalAddress;
+
+                } else {
+                    addressError =  "Error: External address exceeds length of use list; treated as immediate.";
+                }
+                break;
+            }
+
+            if(addressError == NULL){
+                printf("%i: %c %i -> %i \n", memoryMapCounter, type, instruction,\
+                       new_instruction );
+            } else {
+                printf("%i: %c %i -> %i; %s\n", memoryMapCounter, type, instruction,\
+                       new_instruction, addressError );
+            }
+            memoryMapCounter++;
         }
 
+        /* Traverse use-list for this module to check if symbol was utilized.*/
         for(int j = 1; j <= useListSize; j++){
             UseNode *useNodePtr = moduleTable[i].useList[j];
             if(!(*useNodePtr).used){
@@ -220,32 +213,37 @@ int main (int argc, const char *argv[]) {
         printf("\n");
     }
 
-    defNodePtr sym_j = symbolTable[0];
+    /* Traverse symbol table to check if definition was utilized.*/
+    DefNodePtr sym_j = symbolTable[0];
     while (sym_j != NULL ){
+
         if(!(*sym_j).used){
             char mom = (*sym_j).memberOfModule;
-            printf("Warning: %s was defined in module %i (%s) but never used.\n", (*sym_j).symbol, mom + 1, moduleTable[mom].moduleName);
+            printf("Warning: %s was defined in module %i (%s) but never used.\n",\
+                   (*sym_j).symbol, mom + 1, moduleTable[mom].moduleName);
         }
 
         sym_j = (*sym_j).next;
     }
  
+    /* Print Warning strings that were not printed in-line.*/
     if(warningString != NULL)
         printf("%s", warningString);
 
     exit(0);
 }
 
-/* Pass header of Symbol Table linked-list, remove dup and return 1. */
-int findRemoveDuplicateDefinition (defNodePtr defPtr) {
+/* Pass header of Symbol Table linked-list. Function removes duplicates and returns 1
+   if duplicates are found. */
+int findRemoveDuplicateDefinition (DefNodePtr defPtr) {
     int  returnValue = 0;
-    defNode    definition;
-    defNode    nextDef;
+    DefNode    definition;
+    DefNode    nextDef;
     
     definition = *defPtr;
 
     while (definition.next != NULL) {
-        defNodePtr nextDefPtr = definition.next;
+        DefNodePtr nextDefPtr = definition.next;
         nextDef = *nextDefPtr;
 
         if (!strcmp(definition.symbol, nextDef.symbol)) {
