@@ -4,7 +4,6 @@
 int main (int argc, const char *argv[]) {
     Module loaded;
     int offset = 0;
-    char warningString [1000];
 
     /*SymbolTable below is a permanent structure to hold symbols and their 
     absolute addresses.*/
@@ -86,6 +85,8 @@ int main (int argc, const char *argv[]) {
 	
     printf("\n%s\n","Symbol Table");
 
+    //The loop below creates a linked list from the symbolTable.
+    //Multiply-defined symbols are ommitted from the linked list.
     DefNodePtr sym_i = symbolTable[0];
     while (sym_i != NULL ){
         if ( findRemoveDuplicateDefinition(sym_i) ) {
@@ -105,6 +106,9 @@ int main (int argc, const char *argv[]) {
     printf("Memory Map\n");
     for (int i = 0; i < moduleNumber; i++) {
 
+        /* Go through this module's use-list. Compare the use-list
+           symbol to symbol table.  Determine external address. 
+           Set the used flag in symbol table to indicate symbol was used.*/
         char useListSize = (char)moduleTable[i].useList[0];
         for ( int j = 1; j <= useListSize; j++ ) {
             UseNode *useNodePtr = moduleTable[i].useList[j];
@@ -126,8 +130,12 @@ int main (int argc, const char *argv[]) {
                 }
             }
         }
+
+ 
+        /* Now traverse the Instructions for this module and carry out the 
+           appropriate instruction based on cases below. */
                 
-        //Size is stored in the first index.
+        //Instruction quantity is stored in the first index.
         char programSize = (char)moduleTable[i].programText[0];
         for (int j = 1; j <= programSize; j++) {
             ProgTextPtr progTextPtr = moduleTable[i].programText[j];
@@ -149,10 +157,12 @@ int main (int argc, const char *argv[]) {
 
             switch(type) {
 
+            //Immediate instruction
             case 'I':
                 new_instruction = instruction;
                 break;
 
+            //Absolute instruction
             case 'A':
                 if(instructionSuffix > MACHINE_SIZE){
                     new_instruction = instructionPrefix*1000 + 0; 
@@ -162,6 +172,7 @@ int main (int argc, const char *argv[]) {
                 }
                 break;
 
+            //Relative instruction
             case 'R':
                 if(instructionSuffix > moduleTable[i].size){
                     new_instruction = instructionPrefix*1000 + 0; 
@@ -171,6 +182,7 @@ int main (int argc, const char *argv[]) {
                 }
                 break;
 
+            //External instruction
             case 'E':
                 if(instructionSuffix < useListSize){
                     useNodePtr = moduleTable[i].useList[instructionSuffix + 1];
@@ -229,6 +241,8 @@ int main (int argc, const char *argv[]) {
     /* Print Warning strings that were not printed in-line.*/
     if(warningString != NULL)
         printf("%s", warningString);
+    if(errorString != NULL)
+        printf("%s", errorString);
 
     exit(0);
 }

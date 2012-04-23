@@ -19,8 +19,6 @@
 #define MACHINE_SIZE 249
 //Largest name for a module is 14 characters.
 #define MODULE_NAME_SIZE 14
-//Largest symbol is 8 chars.
-#define SYMBOL_SIZE 8
 //Per module, 5 symbols max.
 #define MAX_SYMBOLS 5
 //In total, 10 symbols max.
@@ -30,7 +28,7 @@
 //7 modules maximum.
 #define MAX_MODULES 7
 //Per module, 11 instructions max.
-#define MAX_INSTRUCTIONS 11
+#define MAX_INSTRUCTIONS 12
 
 //This structure holds an instruction and its corresponding type.
 struct ProgText {
@@ -64,12 +62,14 @@ typedef struct DefinitionNode DefNode;
 struct Module{
 	char moduleName[MODULE_NAME_SIZE];
 	DefNode *definitionList[MAX_SYMBOLS];
-	UseNode *useList[MAX_USELIST];
+	UseNode *useList[MAX_USELIST + 1];
 	ProgText *programText[MAX_INSTRUCTIONS];
 	int offset;
         int size;
 };
 typedef struct Module Module;
 
+char warningString [1000];
+char errorString [1000];
 
 FILE *inputFile; // The file.

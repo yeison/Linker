@@ -15,41 +15,53 @@ char buildModuleName(char moduleNameArray[]){
 }
 
 void buildUseList(UseNode *useListArray[]){
-	//Allocate 1 byte for size(count) of useList
-	char *useBuffer = malloc(sizeof(char)); 
-	//Get the size of the useList
-	getNextToken(useBuffer, inputFile);
-	//Convert the ascii to decimal
-	char useCount = atoi(useBuffer);
-        //Print error if use-list is too large
-        if(useCount > MAX_USELIST){
-            perror("Use-list exceeds MAX_USELIST value.");
-            useCount = MAX_USELIST;
-        }
-	//Save the decimal value into the 0th array location
-	useListArray[0] = useCount; 
-        //Allocate space for the first UseNode
-	UseNode *use = malloc(sizeof(UseNode)); 
-	
-	for (char i = 1; i <= useCount; i++) {
-		//Allocate space for the buffer (4 bytes on 32 bit cpu)
-		useBuffer = malloc(sizeof(int)); 
+    //Allocate 1 byte for size(count) of useList
+    char *useBuffer = malloc(sizeof(char)); 
+    //Get the size of the useList
+    getNextToken(useBuffer, inputFile);
+    //Convert the ascii to decimal
+    char useCount = atoi(useBuffer);
+    //Print error if use-list is too large
+    char errorTokens = 0;
+    if(useCount > MAX_USELIST){
+        char error[100];
+        sprintf(error, "Error: Use-list exceeds MAX_USELIST value. Using MAX_USELIST as size.\n");
+        strcat(errorString, error);
+        errorTokens = useCount - MAX_USELIST;
+        useCount = MAX_USELIST;
+    }
 
-		//Store the symbol in the buffer
-		getNextToken( useBuffer, inputFile); 
+    //Save the decimal value into the 0th array location
+    useListArray[0] = useCount; 
+    //Allocate space for the first UseNode
+    UseNode *use = malloc(sizeof(UseNode)); 
 
-		//Point use.symbol to allocated space for symbol
-		(*use).symbol = useBuffer; 
+    for (char i = 1; i <= useCount; i++) {
+        //Allocate space for the buffer (4 bytes on 32 bit cpu)
+        useBuffer = malloc(sizeof(int)); 
 
-		//Initialize to 0 for testing later.
-		(*use).externalAddress = 0; 
+        //Store the symbol in the buffer
+        getNextToken( useBuffer, inputFile); 
 
-		//Point array pointer to allocated space for UseNode
-		useListArray[i] = use; 
+        //Point use.symbol to allocated space for symbol
+        (*use).symbol = useBuffer; 
 
-		//Allocate space for next UseNode in linked list.
-		use = malloc(sizeof(UseNode)); 
-	}
+        //Initialize to 0 for testing later.
+        (*use).externalAddress = 0; 
+
+        //Point array pointer to allocated space for UseNode
+        useListArray[i] = use; 
+
+        //Allocate space for next UseNode in linked list.
+        use = malloc(sizeof(UseNode)); 
+    }
+
+    //Skip the tokens that will not be utilized.
+    while(errorTokens != 0){
+        //printf("\n~!@ET: %i\n", errorTokens);
+        getNextToken( useBuffer, inputFile); 
+        errorTokens--;
+    }
 }
 
 char buildProgramText(ProgText *progTextArray[]){
@@ -74,9 +86,11 @@ char buildProgramText(ProgText *progTextArray[]){
 		textNode = malloc(sizeof(ProgText));
 	}
 
+        //Skip the tokens that will not be utilized.
         while(errorTokens != 0){
             getNextToken(progTextBuffer, inputFile);
             getNextToken(progTextBuffer, inputFile);
+            errorTokens--;
         }
 	return progTextCount;
 }
