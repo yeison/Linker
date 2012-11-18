@@ -61,7 +61,7 @@ typedef struct DefinitionNode DefNode;
 //Module struct carries the other structs.
 struct Module{
 	char moduleName[MODULE_NAME_SIZE];
-	DefNode *definitionList[MAX_SYMBOLS];
+	DefNode *definitionList[MAX_SYMBOLS + 1];
 	UseNode *useList[MAX_USELIST + 1];
 	ProgText *programText[MAX_INSTRUCTIONS];
 	int offset;

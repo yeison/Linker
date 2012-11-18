@@ -96,42 +96,47 @@ char buildProgramText(ProgText *progTextArray[]){
 }
 
 void buildDefList(DefNodePtr symbolTable[], char moduleNumber){
-	char symbolListSize;
-	DefNodePtr defHead = dalloc();
-	DefNodePtr defNodeP = defHead;
-	DefNodePtr defNodeP2;
-	getNextToken(&symbolListSize, inputFile);
-	char defQuantity = symbolListSize - '0';
-        char errorTokens = 0;
-        if(defQuantity > MAX_SYMBOLS){
-            perror("MAX_SYMBOLS per module exceeded. Using MAX_SYMBOLS as size.");
-            errorTokens = defQuantity - MAX_SYMBOLS;
-            defQuantity = MAX_SYMBOLS;
-        }
-	symbolTable[0] = defQuantity;
-	
-	for (char i = 1; i <= defQuantity; i++) {
-		//Place the next definition into the next node
-		*defNodeP = getDefinition(*defNodeP);
-                (*defNodeP).memberOfModule = moduleNumber;
-		symbolTable[i] = defNodeP;
-		//Alocate space for the next definition and reference it with next
-		(*defNodeP).next = dalloc();
-		defNodeP2 = defNodeP;
-		//Move the pointer to the next node.
-		defNodeP = (*defNodeP).next;
-	}
+    char symbolListSize;
+    DefNodePtr defHead = dalloc();
+    DefNodePtr defNodeP = defHead;
+    DefNodePtr defNodeP2;
+    getNextToken(&symbolListSize, inputFile);
+    char defQuantity = symbolListSize - '0';
+    char errorTokens = 0;
+    if(defQuantity > MAX_SYMBOLS){
+        //perror("MAX_SYMBOLS per module exceeded. Using MAX_SYMBOLS as size.");
+        char error[100];
+        sprintf(error, "Error: MAX_SYMBOLS per module exceeded. Using MAX_SYMBOLS as size.\n");
+        strcat(errorString, error);
+        errorTokens = defQuantity - MAX_SYMBOLS;
+        defQuantity = MAX_SYMBOLS;
+    }
+    symbolTable[0] = defQuantity;
 
-        //These tokens will not be read into the program.
-        while(errorTokens != 0){
-            DefNode errTokDN;
-            getDefinition(errTokDN);
-            errorTokens--;
-        }
+    for (char i = 1; i <= defQuantity; i++) {
+        //Place the next definition into the next node
+        *defNodeP = getDefinition(*defNodeP);
+        (*defNodeP).memberOfModule = moduleNumber;
+        symbolTable[i] = defNodeP;
+        //Alocate space for the next definition and reference it with next
+        (*defNodeP).next = dalloc();
+        defNodeP2 = defNodeP;
+        //Move the pointer to the next node.
+        defNodeP = (*defNodeP).next;
+    }
+
  
-	if (defQuantity)
-		(*defNodeP2).next = NULL;	
-	//printf("defList: %c", defListPointer[1]);
+    if (defQuantity)
+        (*defNodeP2).next = NULL;	
+        //printf("defList: %c", defListPointer[1]);
+
+    //These tokens will not be read into the program.
+    while(errorTokens != 0){
+        DefNode *errTokDNPtr = dalloc();
+        DefNode errTokDN = *errTokDNPtr;
+        getDefinition(errTokDN);
+        errorTokens--;
+    } 
 }
 
 DefNode getDefinition(DefNode temp){
@@ -154,13 +159,13 @@ DefNodePtr dalloc(void){
 }
 
 void printList(DefNodePtr p){
-	int i = 0;
-	while(p != NULL){
-		printf("Node %d Symbol: %s\n", i, (*p).symbol);
-		printf("Node %d rAddress: %d\n", i, (*p).relativeAddress);
-		p = (*p).next;
-		i++;
-	}
+    int i = 0;
+    while(p != NULL){
+        printf("Node %d Symbol: %s\n", i, (*p).symbol);
+        printf("Node %d rAddress: %d\n", i, (*p).relativeAddress);
+        p = (*p).next;
+        i++;
+    }
 }
 
 /*Get the definition node at the location indicated by nodeNumber, from the 
