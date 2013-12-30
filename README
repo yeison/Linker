@@ -1,0 +1,7 @@
+In order to build, run:
+  make 
+
+After building, execute the program with:
+  ./linker input/1
+  ./linker input/2
+  etc...
