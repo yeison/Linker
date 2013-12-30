@@ -4,6 +4,7 @@
 int main (int argc, const char *argv[]) {
     Module loaded;
     int offset = 0;
+    char warningString [1000];
 
     /*SymbolTable below is a permanent structure to hold symbols and their 
     absolute addresses.*/
@@ -13,7 +14,7 @@ int main (int argc, const char *argv[]) {
 
     // If the user provides no argument, print the program's usage
     if (argc < 2) {
-        printf("\tUsage: Lab1 <filename> \n\n");
+        printf("\tUsage: ./linker <filename> \n\n");
         exit(0);
     }
 	
@@ -130,7 +131,6 @@ int main (int argc, const char *argv[]) {
                 }
             }
         }
-
  
         /* Now traverse the Instructions for this module and carry out the 
            appropriate instruction based on cases below. */
@@ -241,8 +241,6 @@ int main (int argc, const char *argv[]) {
     /* Print Warning strings that were not printed in-line.*/
     if(warningString != NULL)
         printf("%s", warningString);
-    if(errorString != NULL)
-        printf("%s", errorString);
 
     exit(0);
 }
