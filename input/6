@@ -1,0 +1,14 @@
+Temperature
+0
+1  X21
+3  E 1000  E 1000  E 1000
+
+Reading
+1  X21 0
+0
+1  A 2456
+
+Display
+1  X31 0
+0
+1  R 3456
